@@ -42,7 +42,7 @@ ext.hostname = { ->
   return System.getenv("HOSTNAME")
 }
 
-ext.gitBranch = { ->
+ext.buildInfo = { ->
    new ByteArrayOutputStream().withStream { os ->
       exec {
         executable = "git"
@@ -51,7 +51,7 @@ ext.gitBranch = { ->
       }
       def branchName = os.toString().replaceAll(System.lineSeparator(), "");
       if (branchName.equals("HEAD")) {
-        return "CI Autobuild"
+        return new Date().format('HH:mm:ss z');
       }
       return branchName;
     }
@@ -173,7 +173,7 @@ subprojects {
         entry(key: 'groupId', value: "com.adaptris")
         entry(key: 'artifactId', value: project.name)
         entry(key: 'build.date', value: new Date().format('yyyy-MM-dd'))
-        entry(key: 'vcs.branch', value: gitBranch())
+        entry(key: 'build.info', value: buildInfo())
       }
     }
   }
