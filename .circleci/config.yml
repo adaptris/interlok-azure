@@ -28,7 +28,7 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-            - dependencies-{{ .Environment.CIRCLE_JOB}}-{{ checksum "build.gradle" }}-{{ checksum "interlok-azure-cosmos/build.gradle" }}
+            - dependencies-{{ .Environment.CIRCLE_JOB}}-{{ checksum "build.gradle" }}-{{ checksum "interlok-azure-cosmosdb/build.gradle" }}
             - dependencies-{{ .Environment.CIRCLE_JOB}}-
             - dependencies
 
@@ -57,7 +57,7 @@ jobs:
           paths:
             - ~/.gradle/caches
             - ~/.gradle/wrapper
-          key: dependencies-{{ .Environment.CIRCLE_JOB}}-{{ checksum "build.gradle" }}-{{ checksum "interlok-azure-cosmos/build.gradle" }}
+          key: dependencies-{{ .Environment.CIRCLE_JOB}}-{{ checksum "build.gradle" }}-{{ checksum "interlok-azure-cosmosdb/build.gradle" }}
 
   publish:
     docker:
@@ -84,7 +84,7 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-            - dependencies-{{ .Environment.CIRCLE_JOB}}-{{ checksum "build.gradle" }}-{{ checksum "interlok-azure-cosmos/build.gradle" }}
+            - dependencies-{{ .Environment.CIRCLE_JOB}}-{{ checksum "build.gradle" }}-{{ checksum "interlok-azure-cosmosdb/build.gradle" }}
             - dependencies-{{ .Environment.CIRCLE_JOB}}-{{ checksum "build.gradle" }}
             - dependencies
 
@@ -109,7 +109,7 @@ jobs:
           paths:
             - ~/.gradle/caches
             - ~/.gradle/wrapper
-          key: dependencies-{{ .Environment.CIRCLE_JOB}}-{{ checksum "build.gradle" }}-{{ checksum "interlok-azure-cosmos/build.gradle" }}
+          key: dependencies-{{ .Environment.CIRCLE_JOB}}-{{ checksum "build.gradle" }}-{{ checksum "interlok-azure-cosmosdb/build.gradle" }}
 
   buildjava11:
     docker:
@@ -134,7 +134,7 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-            - dependencies-{{ .Environment.CIRCLE_JOB}}-{{ checksum "build.gradle" }}-{{ checksum "interlok-azure-cosmos/build.gradle" }}
+            - dependencies-{{ .Environment.CIRCLE_JOB}}-{{ checksum "build.gradle" }}-{{ checksum "interlok-azure-cosmosdb/build.gradle" }}
             - dependencies-{{ .Environment.CIRCLE_JOB}}-{{ checksum "build.gradle" }}
             - dependencies
 
@@ -159,7 +159,7 @@ jobs:
           paths:
             - ~/.gradle/caches
             - ~/.gradle/wrapper
-          key: dependencies-{{ .Environment.CIRCLE_JOB}}-{{ checksum "build.gradle" }}-{{ checksum "interlok-azure-cosmos/build.gradle" }}
+          key: dependencies-{{ .Environment.CIRCLE_JOB}}-{{ checksum "build.gradle" }}-{{ checksum "interlok-azure-cosmosdb/build.gradle" }}
 
 workflows:
   version: 2
