@@ -1,0 +1,75 @@
+ext {
+  componentName='Interlok Azure/Cosmos DB'
+}
+
+dependencies {
+  compile ("com.microsoft.azure:azure-documentdb:2.4.2"){
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
+  }
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+task examplesJar(type: Jar, dependsOn: test) {
+    classifier = 'examples'
+    from new File(buildDir, '/examples')
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+
+jar {
+  manifest {
+    attributes("Built-By": System.getProperty('user.name'),
+              "Build-Jdk": System.getProperty('java.version'),
+              "Implementation-Title": componentName,
+              "Implementation-Version": project.version,
+              "Implementation-Vendor-Id": project.group,
+              "Implementation-Vendor": organizationName)
+  }
+}
+
+artifacts {
+    archives javadocJar
+    archives examplesJar
+    archives sourcesJar
+}
+
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      from components.java
+
+      artifact javadocJar { classifier "javadoc" }
+      artifact examplesJar { classifier "examples" }
+      artifact sourcesJar { classifier "sources" }
+      pom.withXml {
+        asNode().appendNode("name", componentName)
+        asNode().appendNode("description", "Components that interact Azure CosmosDB")
+        def properties = asNode().appendNode("properties")
+        properties.appendNode("target", "3.9.2+")
+        properties.appendNode("tags", "azure,cosmosdb,cosmos")
+        properties.appendNode("license", "false")
+      }
+    }
+  }
+  repositories {
+    maven {
+      credentials {
+        username repoUsername
+        password repoPassword
+      }
+      url mavenPublishUrl
+    }
+  }
+}
+
+processTestResources.dependsOn copyUnitTestProperties
+javadoc.dependsOn offlinePackageList
