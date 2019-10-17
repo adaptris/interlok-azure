@@ -7,9 +7,9 @@ public class CosmosAuthExampleTest extends ServiceCase {
 
   @Override
   protected CosmosAuthorizationHeader retrieveObjectForSampleConfig() {
-    return new CosmosAuthorizationHeader().withMasterKey("my-master-key (could be encoded)")
+    return new CosmosAuthorizationHeader()
         .withResourceId("dbs/MyDatabase/colls/MyCollection").withResourceType("colls")
-        .withHttpVerb("PUT");
+        .withHttpVerb("PUT").withMasterKey("my-master-key (could be encoded)");
   }
 
 }

@@ -8,16 +8,12 @@ import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import javax.validation.constraints.NotBlank;
-import org.apache.commons.lang.StringUtils;
-import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
-import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.ServiceException;
-import com.adaptris.core.ServiceImp;
 import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.interlok.resolver.ExternalResolver;
 import com.adaptris.interlok.util.Args;
@@ -30,7 +26,7 @@ import lombok.NonNull;
 import lombok.Setter;
 
 /**
- * Builds an authorization header for Azure CosmosDB.
+ * Builds an authorization header for Azure CosmosDB from an explicit ResourceID / ResourceType
  * 
  * <p>
  * Builds an authorization header using master keys based on the
@@ -72,31 +68,8 @@ import lombok.Setter;
 @XStreamAlias("cosmosdb-authorization-header")
 @ComponentProfile(summary = "Builds an authorization header for Azure CosmosDB", since = "3.9.2", tag = "azure,cosmosdb,cosmos")
 @DisplayOrder(order = {"masterKey", "httpVerb", "resourceType", "resourceId", "targetKey"})
-public class CosmosAuthorizationHeader extends ServiceImp {
+public class CosmosAuthorizationHeader extends CosmosAuthorizationHeaderImpl {
 
-  private static final String DEFAULT_METADATA_KEY = "Authorization";
-  private static final String X_MS_DATE = "x-ms-date";
-
-  /**
-   * The metadata key that will hold the Authorization output.
-   * 
-   */
-  @Getter
-  @Setter
-  @InputFieldDefault(value = DEFAULT_METADATA_KEY)
-  @AdvancedConfig
-  private String targetKey;
-
-  /**
-   * The Verb portion of the hashed token signature is the HTTP verb, such as GET, POST, or PUT.
-   * 
-   */
-  @Getter
-  @Setter
-  @NonNull
-  @NotBlank
-  @InputFieldHint(expression = true, style = "com.adaptris.core.http.client.RequestMethodProvider.RequestMethod")
-  private String httpVerb;
   /**
    * The ResourceType portion of the string identifies the type of resource that the request is for, Eg. "dbs", "colls", "docs".
    * 
@@ -117,29 +90,12 @@ public class CosmosAuthorizationHeader extends ServiceImp {
   @Setter
   @InputFieldHint(expression = true)
   private String resourceId;
-  /**
-   * Your master key token.
-   * 
-   */
-  @Getter
-  @Setter
-  @NonNull
-  @NotBlank
-  @InputFieldHint(style = "password", external = true, expression = true)
-  private String masterKey;
 
   @Override
   public void prepare() throws CoreException {
-    Args.notBlank(getMasterKey(), "master-key");
+    super.prepare();
     Args.notBlank(getResourceType(), "resource-type");
-    Args.notBlank(getHttpVerb(), "verb");
   }
-
-  @Override
-  protected void initService() throws CoreException {}
-
-  @Override
-  protected void closeService() {}
 
   @Override
   public void doService(AdaptrisMessage msg) throws ServiceException {
@@ -163,11 +119,6 @@ public class CosmosAuthorizationHeader extends ServiceImp {
     }
   }
 
-  public CosmosAuthorizationHeader withMasterKey(String s) {
-    setMasterKey(s);
-    return this;
-  }
-
   public CosmosAuthorizationHeader withResourceId(String s) {
     setResourceId(s);
     return this;
@@ -178,17 +129,4 @@ public class CosmosAuthorizationHeader extends ServiceImp {
     return this;
   }
 
-  public CosmosAuthorizationHeader withTargetKey(String s) {
-    setTargetKey(s);
-    return this;
-  }
-
-  public CosmosAuthorizationHeader withHttpVerb(String s) {
-    setHttpVerb(s);
-    return this;
-  }
-
-  private String targetKey() {
-    return StringUtils.defaultIfEmpty(getTargetKey(), DEFAULT_METADATA_KEY);
-  }
 }

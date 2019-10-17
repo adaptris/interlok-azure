@@ -8,15 +8,15 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.ServiceException;
 
-public class CosmosAuthorizationHeaderTest {
+public class CosmosAuthorizationHeaderFromUrlTest {
 
 
   @Test
   public void testService() throws Exception {
-    CosmosAuthorizationHeader service =
-        new CosmosAuthorizationHeader().withResourceId("dbs/MyDatabase/colls/MyCollection").withResourceType("colls")
-            .withMasterKey("my-master-key (could be encoded)")
-            .withHttpVerb("PUT").withTargetKey("AuthToken");
+    CosmosAuthorizationHeaderFromUrl service =
+        new CosmosAuthorizationHeaderFromUrl()
+            .withCosmosEndpointUrl("https://azuredb.microsoft.com/dbs/tempdb/colls/tempcoll/docs")
+            .withHttpVerb("PUT").withTargetKey("AuthToken").withMasterKey("my-master-key (could be encoded)");
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     execute(service, msg);
     assertTrue(msg.headersContainsKey("x-ms-date"));
@@ -28,10 +28,9 @@ public class CosmosAuthorizationHeaderTest {
 
   @Test(expected = ServiceException.class)
   public void testService_Exception() throws Exception {
-    CosmosAuthorizationHeader service =
-        new CosmosAuthorizationHeader().withResourceId("dbs/MyDatabase/colls/MyCollection").withResourceType("colls")
-            .withMasterKey("PW:XXX")
-            .withHttpVerb("PUT").withTargetKey("AuthToken");
+    CosmosAuthorizationHeaderFromUrl service =
+        new CosmosAuthorizationHeaderFromUrl().withCosmosEndpointUrl("https://azuredb.microsoft.com/dbs/tempdb/colls/tempcoll/docs")
+            .withHttpVerb("PUT").withTargetKey("AuthToken").withMasterKey("PW:XXX");
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
 
     execute(service, msg);
