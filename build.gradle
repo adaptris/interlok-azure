@@ -42,20 +42,25 @@ ext.hostname = { ->
   return System.getenv("HOSTNAME")
 }
 
+ext.gitBranchNameOrTimestamp = { branchName ->
+  if (branchName.equals("HEAD") || branchName.equals("develop") || branchName.startsWith("release")) {
+    return new Date().format('HH:mm:ss z');
+  }
+  return branchName;
+}
+
 ext.buildInfo = { ->
    new ByteArrayOutputStream().withStream { os ->
       exec {
         executable = "git"
-        args = ["rev-parse", "--abbrev-ref", "HEAD"]    
+        args = ["rev-parse", "--abbrev-ref", "HEAD"]
         standardOutput = os
       }
-      def branchName = os.toString().replaceAll(System.lineSeparator(), "");
-      if (branchName.equals("HEAD")) {
-        return new Date().format('HH:mm:ss z');
-      }
-      return branchName;
+      def branchName = os.toString().replaceAll("\r", "").replaceAll("\n", "").trim();
+      return gitBranchNameOrTimestamp(branchName);
     }
 }
+
 
 
 def propertyTemplate(dir, filename) {
@@ -117,7 +122,7 @@ subprojects {
     compile ("org.slf4j:slf4j-api:$slf4jVersion")
 
     annotationProcessor ("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
-    
+
     testCompile ('junit:junit:4.12')
     testCompile ("com.adaptris:interlok-stubs:$interlokCoreVersion") { changing= true}
     testCompile ("org.slf4j:slf4j-log4j12:$slf4jVersion")
@@ -127,7 +132,7 @@ subprojects {
     testCompile ("org.apache.logging.log4j:log4j-api:${log4j2Version}")
     testCompile ("org.mockito:mockito-core:$mockitoVersion")
     testCompile ("org.mockito:mockito-inline:$mockitoVersion")
-    
+
     javadoc("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
 
     offlineJavadocPackages ("com.adaptris:interlok-core:$interlokCoreVersion:javadoc@jar") { changing= true}
