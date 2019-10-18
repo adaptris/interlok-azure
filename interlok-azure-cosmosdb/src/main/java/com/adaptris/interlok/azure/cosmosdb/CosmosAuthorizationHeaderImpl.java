@@ -19,7 +19,15 @@ import lombok.Setter;
  */
 @NoArgsConstructor
 public abstract class CosmosAuthorizationHeaderImpl extends ServiceImp {
+  /**
+   * The default metadata key for the {@link #setTargetKey(String)}; set to be {@value #DEFAULT_METADATA_KEY}.
+   * 
+   */
   public static final String DEFAULT_METADATA_KEY = "Authorization";
+  /**
+   * The {@value #X_MS_DATE} header, added as metadata by the services.
+   * 
+   */
   public static final String X_MS_DATE = "x-ms-date";
 
   /**

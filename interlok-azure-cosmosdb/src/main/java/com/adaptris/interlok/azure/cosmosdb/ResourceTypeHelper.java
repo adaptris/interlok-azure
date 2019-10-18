@@ -33,6 +33,10 @@ public class ResourceTypeHelper {
         .toArray(String[]::new);
   }
 
+  /**
+   * Used by the InputFieldHint annotation for type-ahead.
+   * 
+   */
   public static String[] getResourceTypes() {
     return Arrays.copyOf(declaredConstants, declaredConstants.length);
   }
@@ -44,10 +48,21 @@ public class ResourceTypeHelper {
   }
 
 
-  // https://azuredb.microsoft.com/dbs/tempdb/colls/tempcoll/docs/ -> docs
-  // https://azuredb.microsoft.com/dbs/tempdb/colls/tempcoll/docs/MyName -> docs.
-  // so odd number of uri fragments, it's the last one,
-  // even number of uri fragments it's the penultimate one.
+  /**
+   * Parsing the ResourceType out of the URL.
+   * <p>
+   * Odd number of uri fragments, it's the last one, even number of uri fragments it's the penultimate one.
+   * <ul>
+   * <li>https://azuredb.microsoft.com/dbs/tempdb/colls/tempcoll/docs/ -> docs</li>
+   * <li>https://azuredb.microsoft.com/dbs/tempdb/colls/tempcoll/docs/MyName -> docs</li>
+   * <li>
+   * </ul>
+   * </p>
+   * 
+   * @param url the URL endpoint
+   * @return the ResourceType
+   * @see CosmosAuthorizationHeaderFromUrl
+   */
   public static String getResourceType(URL url) {
     String path = stripEnd(stripStart(defaultIfEmpty(url.getPath(), ""), "/"), "/");
     if (isEmpty(path)) {
@@ -60,10 +75,21 @@ public class ResourceTypeHelper {
     return trimToEmpty(fragments[fragments.length - 1]);
   }
 
-  // https://azuredb.microsoft.com/dbs/tempdb/colls -> dbs/tempdb
-  // https://azuredb.microsoft.com/dbs/tempdb/colls/tempcoll/docs/MyName -> dbs/tempdb/colls/tempcoll/docs/MyName.
-  // so odd number of uri fragments, then it's everything but the last one.
-  // even number of uri fragments it's all of them.
+  /**
+   * Parsing the ResourceID out of the URL.
+   * <p>
+   * odd number of uri fragments, then it's everything but the last one; even number of uri fragments it's all of them.
+   * <ul>
+   * <li>https://azuredb.microsoft.com/dbs/tempdb/colls -> dbs/tempdb</li>
+   * <li>https://azuredb.microsoft.com/dbs/tempdb/colls/tempcoll/docs/MyName -> dbs/tempdb/colls/tempcoll/docs/MyName</li>
+   * <li>
+   * </ul>
+   * </p>
+   * 
+   * @param url the URL endpoint
+   * @return the ResourceID.
+   * @see CosmosAuthorizationHeaderFromUrl
+   */
   public static String getResourceID(URL url) {
     String path = stripEnd(stripStart(defaultIfEmpty(url.getPath(), ""), "/"), "/");
     if (isEmpty(path)) {
