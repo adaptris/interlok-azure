@@ -8,8 +8,11 @@ import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import javax.validation.constraints.NotBlank;
+import org.apache.commons.lang.StringUtils;
+import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
+import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
@@ -42,7 +45,7 @@ import lombok.Setter;
     resourceType = "the resource type";
     resourceId = "the resource id"; 
     // From java.time
-    date = DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneId.systemDefault()));
+    date = DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneId.of("GMT"));
     key = "The key";
     keyType = "master";
     tokenVersion = "1.0";
@@ -67,7 +70,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @XStreamAlias("cosmosdb-authorization-header")
 @ComponentProfile(summary = "Builds an authorization header for Azure CosmosDB", since = "3.9.2", tag = "azure,cosmosdb,cosmos")
-@DisplayOrder(order = {"masterKey", "httpVerb", "resourceType", "resourceId", "targetKey"})
+@DisplayOrder(order = {"masterKey", "httpVerb", "resourceType", "resourceId", "targetKey", "timezone"})
 public class CosmosAuthorizationHeader extends CosmosAuthorizationHeaderImpl {
 
   /**
@@ -91,6 +94,18 @@ public class CosmosAuthorizationHeader extends CosmosAuthorizationHeaderImpl {
   @InputFieldHint(expression = true)
   private String resourceId;
 
+  /**
+   * Set the timezone as required.
+   * <p>
+   * By default it is set to GMT, as this is the expected date style for CosmosDB. You shouldn't need to change it.
+   * </p>
+   */
+  @Getter
+  @Setter
+  @InputFieldDefault(value = "GMT")
+  @AdvancedConfig(rare = true)
+  private String timezone;
+
   @Override
   public void prepare() throws CoreException {
     super.prepare();
@@ -100,7 +115,7 @@ public class CosmosAuthorizationHeader extends CosmosAuthorizationHeaderImpl {
   @Override
   public void doService(AdaptrisMessage msg) throws ServiceException {
     try {
-      String now = RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneId.systemDefault()));
+      String now = RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneId.of(timezone())));
       String v = msg.resolve(getHttpVerb());
       String id = msg.resolve(getResourceId());
       String type = msg.resolve(getResourceType());
@@ -129,4 +144,7 @@ public class CosmosAuthorizationHeader extends CosmosAuthorizationHeaderImpl {
     return this;
   }
 
+  private String timezone() {
+    return StringUtils.defaultIfBlank(getTimezone(), "GMT");
+  }
 }

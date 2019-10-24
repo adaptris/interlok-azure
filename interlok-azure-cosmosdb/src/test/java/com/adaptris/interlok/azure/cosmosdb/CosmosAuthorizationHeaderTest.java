@@ -20,6 +20,7 @@ public class CosmosAuthorizationHeaderTest {
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     execute(service, msg);
     assertTrue(msg.headersContainsKey("x-ms-date"));
+    assertTrue(msg.getMetadataValue("x-ms-date").endsWith("GMT"));
     assertTrue(msg.headersContainsKey("AuthToken"));
     String authToken = msg.getMetadataValue("AuthToken");
     assertTrue(authToken.startsWith("type%3D"));
