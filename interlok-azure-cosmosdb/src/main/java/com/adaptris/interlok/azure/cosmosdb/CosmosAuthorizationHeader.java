@@ -1,10 +1,10 @@
 package com.adaptris.interlok.azure.cosmosdb;
 
-import static java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import javax.validation.constraints.NotBlank;
@@ -115,7 +115,7 @@ public class CosmosAuthorizationHeader extends CosmosAuthorizationHeaderImpl {
   @Override
   public void doService(AdaptrisMessage msg) throws ServiceException {
     try {
-      String now = RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneId.of(timezone())));
+      String now = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z").format(ZonedDateTime.now(ZoneId.of(timezone())));
       String v = msg.resolve(getHttpVerb());
       String id = msg.resolve(getResourceId());
       String type = msg.resolve(getResourceType());
