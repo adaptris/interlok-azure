@@ -1,10 +1,10 @@
 package com.adaptris.interlok.azure.cosmosdb;
 
-import static java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import javax.validation.constraints.NotBlank;
@@ -74,6 +74,12 @@ import lombok.Setter;
 public class CosmosAuthorizationHeader extends CosmosAuthorizationHeaderImpl {
 
   /**
+   * The default date format: {@value #DEFAULT_DATE_FORMAT}.
+   * 
+   */
+  public static final String DEFAULT_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss z";
+
+  /**
    * The ResourceType portion of the string identifies the type of resource that the request is for, Eg. "dbs", "colls", "docs".
    * 
    */
@@ -106,6 +112,20 @@ public class CosmosAuthorizationHeader extends CosmosAuthorizationHeaderImpl {
   @AdvancedConfig(rare = true)
   private String timezone;
 
+  /**
+   * Override the default date format.
+   * <p>
+   * By default it is set to be {@value #DEFAULT_DATE_FORMAT} which imposes a leading digit on the day if required;
+   * {@link DateTimeFormatter#RFC_1123_DATE_TIME} doesn't appear suitable for use with Azure CosmosDB as it doesn't provide the
+   * leading digit.
+   * </p>
+   */
+  @Getter
+  @Setter
+  @InputFieldDefault(value = DEFAULT_DATE_FORMAT)
+  @AdvancedConfig(rare = true)
+  private String dateFormat;
+
   @Override
   public void prepare() throws CoreException {
     super.prepare();
@@ -115,7 +135,7 @@ public class CosmosAuthorizationHeader extends CosmosAuthorizationHeaderImpl {
   @Override
   public void doService(AdaptrisMessage msg) throws ServiceException {
     try {
-      String now = RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneId.of(timezone())));
+      String now = DateTimeFormatter.ofPattern(dateFormat()).format(ZonedDateTime.now(ZoneId.of(timezone())));
       String v = msg.resolve(getHttpVerb());
       String id = msg.resolve(getResourceId());
       String type = msg.resolve(getResourceType());
@@ -146,5 +166,9 @@ public class CosmosAuthorizationHeader extends CosmosAuthorizationHeaderImpl {
 
   private String timezone() {
     return StringUtils.defaultIfBlank(getTimezone(), "GMT");
+  }
+
+  private String dateFormat() {
+    return StringUtils.defaultIfBlank(getDateFormat(), DEFAULT_DATE_FORMAT);
   }
 }
