@@ -1,5 +1,6 @@
 ext {
   componentName='Interlok Azure/Cosmos DB'
+  delombokTargetDir = new File("${project.projectDir}/src/main/generated")
 }
 
 dependencies {
@@ -73,5 +74,15 @@ publishing {
   }
 }
 
+delombok {
+  target = delombokTargetDir
+}
+
+task deleteGeneratedFiles(type: Delete) {
+  delete delombokTargetDir
+}
+
+
 processTestResources.dependsOn copyUnitTestProperties
 javadoc.dependsOn offlinePackageList
+clean.dependsOn deleteGeneratedFiles
