@@ -21,8 +21,8 @@ ext {
   interlokCommonJavadocs= project.hasProperty('interlokJavadocs') ? project.getProperty('interlokJavadocs') : javadocsBaseUrl + "/interlok-common/" + interlokCoreVersion
   organizationName = "Adaptris Ltd"
 
-  slf4jVersion = '1.7.29'
-  log4j2Version = '2.12.1'
+  slf4jVersion = '1.7.30'
+  log4j2Version = '2.13.0'
   mockitoVersion = '3.2.0'
 }
 
