@@ -38,7 +38,7 @@ import lombok.Setter;
  * <th>ResourceID</th>
  * <tr>
  * <td>https://azuredb.microsoft.com/</td>
- * <td>{@code ""} - the service will fail; since ResourceType must be set</td>
+ * <td>{@code ""} (the service will fail; since ResourceType must be set)</td>
  * <td>{@code ""}</td>
  * </tr>
  * <tr>

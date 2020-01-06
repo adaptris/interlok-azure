@@ -1,14 +1,15 @@
 ext {
   componentName='Interlok Azure/Cosmos DB'
+  delombokTargetDir = new File("${project.projectDir}/src/main/generated")
 }
 
 dependencies {
-  compile ("com.microsoft.azure:azure-documentdb:2.4.2"){
+  compile ("com.microsoft.azure:azure-documentdb:2.4.5"){
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
   }
-  compile ("com.fasterxml.jackson.core:jackson-databind:2.10.0")
-  compile ("com.fasterxml.jackson.core:jackson-core:2.10.0")
+  compile ("com.fasterxml.jackson.core:jackson-databind:2.10.1")
+  compile ("com.fasterxml.jackson.core:jackson-core:2.10.1")
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
@@ -23,7 +24,7 @@ task examplesJar(type: Jar, dependsOn: test) {
 
 task sourcesJar(type: Jar, dependsOn: classes) {
     classifier = 'sources'
-    from sourceSets.main.allSource
+    from sourceSets.main.extensions.delombokTask
 }
 
 
@@ -73,5 +74,15 @@ publishing {
   }
 }
 
+delombok {
+  target = delombokTargetDir
+}
+
+task deleteGeneratedFiles(type: Delete) {
+  delete delombokTargetDir
+}
+
+
 processTestResources.dependsOn copyUnitTestProperties
 javadoc.dependsOn offlinePackageList
+clean.dependsOn deleteGeneratedFiles
