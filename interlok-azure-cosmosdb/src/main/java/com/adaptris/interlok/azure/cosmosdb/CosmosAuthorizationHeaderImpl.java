@@ -1,7 +1,7 @@
 package com.adaptris.interlok.azure.cosmosdb;
 
 import javax.validation.constraints.NotBlank;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
