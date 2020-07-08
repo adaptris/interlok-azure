@@ -12,7 +12,7 @@ public class CosmosAuthUrlExampleTest extends ServiceCase{
   protected CosmosAuthorizationHeaderFromUrl retrieveObjectForSampleConfig() {
     return new CosmosAuthorizationHeaderFromUrl()
         .withCosmosEndpointUrl("https://azuredb.microsoft.com/dbs/MyDatabase/colls/MyCollection")
-        .withMasterKey("my-master-key (could be encoded)")
+        .withMasterKey("MyMasterKey or PW:XXX")
         .withHttpVerb("PUT");
   }
 

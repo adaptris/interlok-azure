@@ -2,8 +2,9 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import org.apache.tools.ant.filters.*
 
 plugins {
-  id 'com.github.spotbugs' version '4.0.5' apply false
-  id "io.freefair.lombok" version "5.0.0" apply false
+  id 'com.github.spotbugs' version '4.2.3' apply false
+  id "io.freefair.lombok" version "5.1.0" apply false
+  id 'org.owasp.dependencycheck' version '5.3.2.1' apply false
 }
 
 ext {
@@ -22,7 +23,6 @@ ext {
   organizationName = "Adaptris Ltd"
 
   slf4jVersion = '1.7.30'
-  log4j2Version = '2.13.2'
   mockitoVersion = '3.3.3'
 }
 
@@ -93,6 +93,7 @@ subprojects {
   apply plugin: "jacoco"
   apply plugin: "io.freefair.lombok"
   apply plugin: 'com.github.spotbugs'
+  apply plugin: 'org.owasp.dependencycheck'
 
   sourceCompatibility = 1.8
   group   = 'com.adaptris'
@@ -139,12 +140,15 @@ subprojects {
     annotationProcessor ("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
 
     testCompile ('junit:junit:4.13')
-    testCompile ("com.adaptris:interlok-stubs:$interlokCoreVersion") { changing= true}
+    testCompile "org.slf4j:slf4j-simple:$slf4jVersion"
+    // exclude any log4j dependencies so that we can just use slf4j simple.
+    // works around INTERLOk-3233
+    testCompile "com.adaptris:interlok-stubs:$interlokCoreVersion", {
+      changing= true
+      exclude group: "org.apache.logging.log4j"
+    }
     testCompile ("org.slf4j:slf4j-log4j12:$slf4jVersion")
     testCompile ("org.slf4j:jcl-over-slf4j:$slf4jVersion")
-    testCompile ("org.apache.logging.log4j:log4j-core:${log4j2Version}")
-    testCompile ("org.apache.logging.log4j:log4j-1.2-api:${log4j2Version}")
-    testCompile ("org.apache.logging.log4j:log4j-api:${log4j2Version}")
     testCompile ("org.mockito:mockito-core:$mockitoVersion")
     testCompile ("org.mockito:mockito-inline:$mockitoVersion")
 
@@ -288,6 +292,17 @@ subprojects {
       html {
         enabled = true
       }
+    }
+  }
+
+  dependencyCheck  {
+    suppressionFiles= [ "https://raw.githubusercontent.com/adaptris/interlok/develop/gradle/owasp-exclude.xml" ]
+    skipConfigurations = [ "antSql", "spotbugs", "umlDoclet", "offlineJavadocPackages", "javadoc", "jacocoAnt", "jacocoAgent", "spotbugsPlugins", "spotbugsSlf4j" ]
+    formats = [ "HTML", "JUNIT" ]
+    junitFailOnCVSS = 7.0
+    failBuildOnCVSS = 7.0
+    analyzers {
+      assemblyEnabled=false
     }
   }
 
