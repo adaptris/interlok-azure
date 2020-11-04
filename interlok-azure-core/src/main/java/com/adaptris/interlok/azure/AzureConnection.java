@@ -1,5 +1,8 @@
 package com.adaptris.interlok.azure;
 
+import com.adaptris.annotation.AdapterComponent;
+import com.adaptris.annotation.ComponentProfile;
+import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisConnectionImp;
 import com.adaptris.core.CoreException;
@@ -8,12 +11,17 @@ import com.microsoft.aad.msal4j.ClientCredentialFactory;
 import com.microsoft.aad.msal4j.ClientCredentialParameters;
 import com.microsoft.aad.msal4j.ConfidentialClientApplication;
 import com.microsoft.aad.msal4j.IAuthenticationResult;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.validation.constraints.NotBlank;
 import java.util.Collections;
 
+@XStreamAlias("azure-connection")
+@AdapterComponent
+@ComponentProfile(summary = "Connect to an Azure tenant", tag = "connections,azure")
+@DisplayOrder(order = { "applicationId", "tenantId", "clientSecret" })
 public class AzureConnection extends AdaptrisConnectionImp
 {
 	private static final String SCOPE = "https://graph.microsoft.com/.default";

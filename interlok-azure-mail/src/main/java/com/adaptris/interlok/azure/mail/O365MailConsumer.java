@@ -59,7 +59,7 @@ import static java.nio.charset.StandardCharsets.US_ASCII;
 @XStreamAlias("office-365-mail-consumer")
 @AdapterComponent
 @ComponentProfile(summary = "Pickup email from a Microsoft Office 365 account using the Microsoft Graph API", tag = "consumer,email,o365,microsoft,office,outlook,365")
-@DisplayOrder(order = { "applicationId", "tenantId", "clientSecret", "username", "delete" })
+@DisplayOrder(order = { "username", "delete" })
 public class O365MailConsumer extends AdaptrisPollingConsumer
 {
   @Getter

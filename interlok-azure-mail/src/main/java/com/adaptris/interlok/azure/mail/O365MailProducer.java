@@ -40,7 +40,7 @@ import java.util.List;
 @XStreamAlias("office-365-mail-producer")
 @AdapterComponent
 @ComponentProfile(summary = "Send email using a Microsoft Office 365 account using the Microsoft Graph API", tag = "producer,email,o365,microsoft,office,outlook,365")
-@DisplayOrder(order = { "applicationId", "tenantId", "clientSecret", "username", "subject", "toRecipients", "ccRecipients", "bccRecipients", "save" })
+@DisplayOrder(order = { "username", "subject", "toRecipients", "ccRecipients", "bccRecipients", "save" })
 public class O365MailProducer extends ProduceOnlyProducerImp
 {
   @Getter
