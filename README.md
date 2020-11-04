@@ -43,8 +43,22 @@ The Office365 consumer and producer require the above because:
 4. Ensure there is a user with an Exchange mailbox
 ![Users Setup](docs/o365-4.png)
 
-### Interlok Mail Setup
+### Azure Mail Setup
 
 The application ID, tenant ID, client secret and username are all
 required and should match those given in the Azure portal. When sending
-mail a list of recipients is also required.
+mail a list of recipients is obviously necessary too.
+
+List of library (JAR) dependencies:
+
+* Microsoft Azure
+* Microsoft Graph Core
+* Microsoft Graph
+* Nimbusds Jose JWT
+* Nimbusds oAauth2 OIDC SDK
+* Nimbusds Content-Type
+* Minidev JSON Smart
+* FasterXML Jackson Core
+* SquareUp OKHTTP
+* SquareUp OKIO
+* Google GSON
