@@ -8,6 +8,7 @@ import com.adaptris.core.QuartzCronPoller;
 import com.adaptris.core.StandaloneConsumer;
 import com.adaptris.core.stubs.MockMessageListener;
 import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.interlok.azure.AzureConnection;
 import com.adaptris.interlok.junit.scaffolding.ExampleConsumerCase;
 import com.adaptris.util.TimeInterval;
 import org.junit.Assume;
@@ -35,6 +36,7 @@ public class O365MailConsumerTest extends ExampleConsumerCase
     new QuartzCronPoller("0 */5 * * * ?"),
   };
 
+  private AzureConnection connection;
   private O365MailConsumer consumer;
 
   private boolean runTests = false;
@@ -53,13 +55,13 @@ public class O365MailConsumerTest extends ExampleConsumerCase
       // do nothing
     }
 
+    connection = new AzureConnection();
+    connection.setApplicationId(properties.getProperty("APPLICATION_ID", APPLICATION_ID));
+    connection.setTenantId(properties.getProperty("TENANT_ID", TENANT_ID));
+    connection.setClientSecret(properties.getProperty("CLIENT_SECRET", CLIENT_SECRET));
+
     consumer = new O365MailConsumer();
-
-    consumer.setApplicationId(properties.getProperty("APPLICATION_ID", APPLICATION_ID));
-    consumer.setTenantId(properties.getProperty("TENANT_ID", TENANT_ID));
-    consumer.setClientSecret(properties.getProperty("CLIENT_SECRET", CLIENT_SECRET));
     consumer.setUsername(properties.getProperty("USERNAME", USERNAME));
-
     consumer.setMessageFactory(new MultiPayloadMessageFactory());
   }
 
@@ -69,7 +71,7 @@ public class O365MailConsumerTest extends ExampleConsumerCase
     Assume.assumeTrue(runTests);
 
     MockMessageListener mockMessageListener = new MockMessageListener(10);
-    StandaloneConsumer standaloneConsumer = new StandaloneConsumer(consumer);
+    StandaloneConsumer standaloneConsumer = new StandaloneConsumer(connection, consumer);
     standaloneConsumer.registerAdaptrisMessageListener(mockMessageListener);
     try
     {
@@ -97,7 +99,7 @@ public class O365MailConsumerTest extends ExampleConsumerCase
   @Override
   protected Object retrieveObjectForSampleConfig()
   {
-    return new StandaloneConsumer(consumer);
+    return new StandaloneConsumer(connection, consumer);
   }
 
   @Override

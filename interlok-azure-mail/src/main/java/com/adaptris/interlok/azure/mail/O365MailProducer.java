@@ -7,30 +7,17 @@ import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.CoreException;
 import com.adaptris.core.MultiPayloadAdaptrisMessage;
 import com.adaptris.core.ProduceException;
 import com.adaptris.core.ProduceOnlyProducerImp;
-import com.microsoft.aad.msal4j.ClientCredentialFactory;
-import com.microsoft.aad.msal4j.ClientCredentialParameters;
-import com.microsoft.aad.msal4j.ConfidentialClientApplication;
-import com.microsoft.aad.msal4j.IAuthenticationResult;
-import com.microsoft.graph.concurrency.ChunkedUploadProvider;
-import com.microsoft.graph.concurrency.IProgressCallback;
-import com.microsoft.graph.core.ClientException;
-import com.microsoft.graph.models.extensions.Attachment;
-import com.microsoft.graph.models.extensions.AttachmentItem;
+import com.adaptris.interlok.azure.AzureConnection;
 import com.microsoft.graph.models.extensions.EmailAddress;
 import com.microsoft.graph.models.extensions.FileAttachment;
 import com.microsoft.graph.models.extensions.IGraphServiceClient;
 import com.microsoft.graph.models.extensions.ItemBody;
 import com.microsoft.graph.models.extensions.Message;
 import com.microsoft.graph.models.extensions.Recipient;
-import com.microsoft.graph.models.extensions.UploadSession;
-import com.microsoft.graph.models.generated.AttachmentType;
 import com.microsoft.graph.models.generated.BodyType;
-import com.microsoft.graph.requests.extensions.AttachmentCollectionPage;
-import com.microsoft.graph.requests.extensions.AttachmentCollectionRequest;
 import com.microsoft.graph.requests.extensions.GraphServiceClient;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
@@ -40,9 +27,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.constraints.NotBlank;
-import java.io.InputStream;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -58,23 +43,6 @@ import java.util.List;
 @DisplayOrder(order = { "applicationId", "tenantId", "clientSecret", "username", "subject", "toRecipients", "ccRecipients", "bccRecipients", "save" })
 public class O365MailProducer extends ProduceOnlyProducerImp
 {
-  private static final String SCOPE = "https://graph.microsoft.com/.default";
-
-  @Getter
-  @Setter
-  @NotBlank
-  private String applicationId;
-
-  @Getter
-  @Setter
-  @NotBlank
-  private String tenantId;
-
-  @Getter
-  @Setter
-  @NotBlank
-  private String clientSecret;
-
   @Getter
   @Setter
   @NotBlank
@@ -111,23 +79,10 @@ public class O365MailProducer extends ProduceOnlyProducerImp
   @InputFieldDefault("true")
   private Boolean save;
 
-  private transient ConfidentialClientApplication confidentialClientApplication;
-
   @Override
-  public void prepare() throws CoreException
+  public void prepare()
   {
-    try
-    {
-      confidentialClientApplication = ConfidentialClientApplication.builder(applicationId,
-              ClientCredentialFactory.createFromSecret(clientSecret))
-              .authority(tenant())
-              .build();
-    }
-    catch (Exception e)
-    {
-      log.error("Could not identify Azure application or tenant", e);
-      throw new CoreException(e);
-    }
+    /* do nothing */
   }
 
   @Override
@@ -139,9 +94,8 @@ public class O365MailProducer extends ProduceOnlyProducerImp
 
     try
     {
-      IAuthenticationResult iAuthResult = confidentialClientApplication.acquireToken(ClientCredentialParameters.builder(Collections.singleton(SCOPE)).build()).join();
-      log.trace("Access token: " + iAuthResult.accessToken());
-      IGraphServiceClient graphClient = GraphServiceClient.builder().authenticationProvider(request -> request.addHeader("Authorization", "Bearer " + iAuthResult.accessToken())).buildClient();
+      AzureConnection connection = retrieveConnection(AzureConnection.class);
+      IGraphServiceClient graphClient = GraphServiceClient.builder().authenticationProvider(request -> request.addHeader("Authorization", "Bearer " + connection.getAccessToken())).buildClient();
 
       Message outlookMessage = new Message();
       outlookMessage.subject = adaptrisMessage.resolve(subject);
@@ -263,11 +217,6 @@ public class O365MailProducer extends ProduceOnlyProducerImp
       recipientList.add(recipient);
     }
     return recipientList;
-  }
-
-  private String tenant()
-  {
-    return String.format("https://login.microsoftonline.com/%s", tenantId);
   }
 
   private boolean save()

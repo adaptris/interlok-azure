@@ -24,13 +24,9 @@ import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisPollingConsumer;
-import com.adaptris.core.CoreException;
 import com.adaptris.core.MultiPayloadAdaptrisMessage;
 import com.adaptris.core.util.DestinationHelper;
-import com.microsoft.aad.msal4j.ClientCredentialFactory;
-import com.microsoft.aad.msal4j.ClientCredentialParameters;
-import com.microsoft.aad.msal4j.ConfidentialClientApplication;
-import com.microsoft.aad.msal4j.IAuthenticationResult;
+import com.adaptris.interlok.azure.AzureConnection;
 import com.microsoft.graph.models.extensions.Attachment;
 import com.microsoft.graph.models.extensions.FileAttachment;
 import com.microsoft.graph.models.extensions.IGraphServiceClient;
@@ -51,7 +47,8 @@ import javax.mail.util.ByteArrayDataSource;
 import javax.validation.constraints.NotBlank;
 import java.io.ByteArrayInputStream;
 import java.util.Base64;
-import java.util.Collections;
+
+import static java.nio.charset.StandardCharsets.US_ASCII;
 
 /**
  * Implementation of an email consumer that is geared towards Microsoft
@@ -65,23 +62,6 @@ import java.util.Collections;
 @DisplayOrder(order = { "applicationId", "tenantId", "clientSecret", "username", "delete" })
 public class O365MailConsumer extends AdaptrisPollingConsumer
 {
-  private static final String SCOPE = "https://graph.microsoft.com/.default";
-
-  @Getter
-  @Setter
-  @NotBlank
-  private String applicationId;
-
-  @Getter
-  @Setter
-  @NotBlank
-  private String tenantId;
-
-  @Getter
-  @Setter
-  @NotBlank
-  private String clientSecret;
-
   @Getter
   @Setter
   @NotBlank
@@ -94,23 +74,10 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
   @InputFieldDefault("false")
   private Boolean delete;
 
-  private transient ConfidentialClientApplication confidentialClientApplication;
-
   @Override
-  protected void prepareConsumer() throws CoreException
+  protected void prepareConsumer()
   {
-    try
-    {
-      confidentialClientApplication = ConfidentialClientApplication.builder(applicationId,
-          ClientCredentialFactory.createFromSecret(clientSecret))
-          .authority(tenant())
-          .build();
-    }
-    catch (Exception e)
-    {
-      log.error("Could not identify Azure application or tenant", e);
-      throw new CoreException(e);
-    }
+    /* do nothing */
   }
 
   @Override
@@ -121,9 +88,8 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
     int count = 0;
     try
     {
-      IAuthenticationResult iAuthResult = confidentialClientApplication.acquireToken(ClientCredentialParameters.builder(Collections.singleton(SCOPE)).build()).join();
-      log.trace("Access token: " + iAuthResult.accessToken());
-      IGraphServiceClient graphClient = GraphServiceClient.builder().authenticationProvider(request -> request.addHeader("Authorization", "Bearer " + iAuthResult.accessToken())).buildClient();
+      AzureConnection connection = retrieveConnection(AzureConnection.class);
+      IGraphServiceClient graphClient = GraphServiceClient.builder().authenticationProvider(request -> request.addHeader("Authorization", "Bearer " + connection.getAccessToken())).buildClient();
 
       // TODO Allow the end user to choose the folder and filter themselves
       IMessageCollectionPage messages = graphClient.users(username).mailFolders("inbox").messages().buildRequest().filter("isRead eq false").get();
@@ -223,11 +189,6 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
     return DestinationHelper.threadName(retrieveAdaptrisMessageListener(), null);
   }
 
-  private String tenant()
-  {
-    return String.format("https://login.microsoftonline.com/%s", tenantId);
-  }
-
   private boolean delete()
   {
     return BooleanUtils.toBooleanDefaultIfNull(delete, false);
@@ -275,7 +236,7 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
         }
         else if (content instanceof String)
         {
-          bytes = ((String)content).getBytes();
+          bytes = ((String)content).getBytes(US_ASCII); // MIME encoded emails are always 7bit ASCII right??
         }
         else
         {

@@ -1,3 +1,4 @@
 rootProject.name = 'interlok-azure'
 include 'interlok-azure-cosmosdb'
+include 'interlok-azure-core'
 include 'interlok-azure-mail'

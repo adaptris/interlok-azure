@@ -4,6 +4,7 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.NullConnection;
 import com.adaptris.core.StandaloneProducer;
+import com.adaptris.interlok.azure.AzureConnection;
 import com.adaptris.interlok.junit.scaffolding.ExampleProducerCase;
 import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
 import org.junit.Assume;
@@ -26,6 +27,7 @@ public class O365MailProducerTest extends ExampleProducerCase
   private static final String SUBJECT = "InterlokMail Office365 Test Message";
   private static final String MESSAGE = "Bacon ipsum dolor amet tail landjaeger ribeye sausage, prosciutto pork belly strip steak pork loin pork bacon biltong ham hock leberkas boudin chicken. Brisket sirloin ground round, drumstick cupim rump chislic tongue short loin pastrami bresaola pork belly alcatra spare ribs buffalo. Swine chuck frankfurter pancetta. Corned beef spare ribs pork kielbasa, chuck jerky t-bone ground round burgdoggen.";
 
+  private AzureConnection connection;
   private O365MailProducer producer;
 
   private boolean runTests = false;
@@ -44,13 +46,14 @@ public class O365MailProducerTest extends ExampleProducerCase
       // do nothing
     }
 
+    connection = new AzureConnection();
+    connection.setApplicationId(properties.getProperty("APPLICATION_ID", APPLICATION_ID));
+    connection.setTenantId(properties.getProperty("TENANT_ID", TENANT_ID));
+    connection.setClientSecret(properties.getProperty("CLIENT_SECRET", CLIENT_SECRET));
+
     producer = new O365MailProducer();
-
-    producer.setApplicationId(properties.getProperty("APPLICATION_ID", APPLICATION_ID));
-    producer.setTenantId(properties.getProperty("TENANT_ID", TENANT_ID));
-    producer.setClientSecret(properties.getProperty("CLIENT_SECRET", CLIENT_SECRET));
+    producer.registerConnection(connection);
     producer.setUsername(properties.getProperty("USERNAME", USERNAME));
-
     producer.setSubject(SUBJECT);
     producer.setToRecipients(properties.getProperty("USERNAME", USERNAME)); // send it to ourself so we're not spamming anyone else
     producer.setSave(true);
@@ -62,14 +65,14 @@ public class O365MailProducerTest extends ExampleProducerCase
     Assume.assumeTrue(runTests);
 
     AdaptrisMessage message = AdaptrisMessageFactory.getDefaultInstance().newMessage(MESSAGE);
-    StandaloneProducer standaloneProducer = new StandaloneProducer(new NullConnection(), producer);
+    StandaloneProducer standaloneProducer = new StandaloneProducer(connection, producer);
     ExampleServiceCase.execute(standaloneProducer, message);
   }
 
   @Override
   protected Object retrieveObjectForSampleConfig()
   {
-    return new StandaloneProducer(new NullConnection(), producer);
+    return new StandaloneProducer(connection, producer);
   }
 
   @Override
