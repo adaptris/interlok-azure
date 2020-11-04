@@ -59,7 +59,7 @@ import static java.nio.charset.StandardCharsets.US_ASCII;
 @XStreamAlias("one-drive-consumer")
 @AdapterComponent
 @ComponentProfile(summary = "Pickup files from a Microsoft Office 365 One Drive account using the Microsoft Graph API", tag = "consumer,file,o365,microsoft,office,365,one drive")
-@DisplayOrder(order = { "username", "delete" })
+@DisplayOrder(order = { "username" })
 public class OneDriveConsumer extends AdaptrisPollingConsumer
 {
   @Getter
@@ -76,7 +76,7 @@ public class OneDriveConsumer extends AdaptrisPollingConsumer
   @Override
   protected int processMessages()
   {
-    log.debug("Polling for mail in Office365 as user " + username);
+    log.debug("Polling for files in One Drive as user " + username);
 
     int count = 0;
     try
@@ -84,93 +84,13 @@ public class OneDriveConsumer extends AdaptrisPollingConsumer
       AzureConnection connection = retrieveConnection(AzureConnection.class);
       IGraphServiceClient graphClient = GraphServiceClient.builder().authenticationProvider(request -> request.addHeader("Authorization", "Bearer " + connection.getAccessToken())).buildClient();
 
-      // TODO Allow the end user to choose the folder and filter themselves
-      IMessageCollectionPage messages = graphClient.users(username).mailFolders("inbox").messages().buildRequest().filter("isRead eq false").get();
 
-      // TODO handle multiple pages...
-      log.debug("Found {} messages", messages.getCurrentPage().size());
-      for (Message outlookMessage : messages.getCurrentPage())
-      {
-        String id = outlookMessage.id;
-        AdaptrisMessage adaptrisMessage = getMessageFactory().newMessage(outlookMessage.body.content);
-
-        if (adaptrisMessage instanceof MultiPayloadAdaptrisMessage)
-        {
-          ((MultiPayloadAdaptrisMessage)adaptrisMessage).setCurrentPayloadId(id);
-        }
-        adaptrisMessage.addMetadata("EmailID", id);
-        adaptrisMessage.addMetadata("Subject", outlookMessage.subject);
-        adaptrisMessage.addMetadata("To", outlookMessage.toRecipients.stream().map(r -> r.emailAddress.address).reduce((a, b) -> a + "," + b).get() );
-        adaptrisMessage.addMetadata("From", outlookMessage.from.emailAddress.address);
-        adaptrisMessage.addMetadata("CC", String.join(",", outlookMessage.ccRecipients.stream().map(r -> r.emailAddress.address).toArray(String[]::new)));
-
-        log.debug("Processing email from {}: {}", outlookMessage.from.emailAddress.address, outlookMessage.subject);
-
-        if (adaptrisMessage instanceof MultiPayloadAdaptrisMessage && outlookMessage.hasAttachments)
-        {
-          MultiPayloadAdaptrisMessage multiPayloadAdaptrisMessage = (MultiPayloadAdaptrisMessage)adaptrisMessage;
-          IAttachmentCollectionPage attachments = graphClient.users(username).messages(id).attachments().buildRequest().get();
-          log.debug("Message has {} attachments", attachments.getCurrentPage().size());
-          for (Attachment reference : attachments.getCurrentPage())
-          {
-            log.debug("Attachment {} is of type {} with size {}", reference.name, reference.oDataType, reference.size);
-            IAttachmentRequest request = graphClient.users(username).messages(id).attachments(reference.id).buildRequest();//new QueryOption("$value", ""));
-            log.debug("URL: {}", request.getRequestUrl());
-            Attachment attachment = request.get();
-            if (attachment instanceof FileAttachment)
-            {
-              FileAttachment file = (FileAttachment)attachment;
-              log.debug("File {} :: {} :: {}", file.name, file.contentType, file.size);
-              if (file.contentType.startsWith("multipart"))
-              {
-                MimeMultipart mimeMultipart = new MimeMultipart(new ByteArrayDataSource(file.contentBytes, file.contentType));
-                parseMimeMultiPart(multiPayloadAdaptrisMessage, mimeMultipart);
-              }
-              else
-              {
-                addAttachmentToAdaptrisMessage(multiPayloadAdaptrisMessage, file.name, file.contentBytes);
-              }
-            }
-          }
-          multiPayloadAdaptrisMessage.switchPayload(id);
-        }
-
-        /*
-         * The internetMessageHeaders need to be requested explicitly with a SELECT.
-         */
-        outlookMessage = graphClient.users(username).messages(id).buildRequest().select("internetMessageHeaders").get();
-        if (outlookMessage.internetMessageHeaders != null)
-        {
-          for (InternetMessageHeader header : outlookMessage.internetMessageHeaders)
-          {
-            adaptrisMessage.addMetadata(header.name, header.value);
-          }
-        }
-
-        retrieveAdaptrisMessageListener().onAdaptrisMessage(adaptrisMessage);
-
-        if (delete())
-        {
-          graphClient.users(username).messages(id).buildRequest().delete();
-        }
-        else
-        {
-          /*
-           * With PATCH, only send what we've changed, in this instance
-           * we're marking the mail as read.
-           */
-          outlookMessage = new Message();
-          outlookMessage.isRead = true;
-          graphClient.users(username).messages(id).buildRequest().patch(outlookMessage);
-        }
-
-        count++;
-      }
+//        count++;
 
     }
     catch (Throwable e)
     {
-      log.error("Exception processing Outlook message", e);
+      log.error("Exception processing One Drive file", e);
     }
 
     return count;
