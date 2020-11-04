@@ -39,6 +39,7 @@ import com.microsoft.graph.requests.extensions.IMessageCollectionPage;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
 
 import javax.mail.BodyPart;
@@ -232,7 +233,7 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
         byte[] bytes = null;
         if (content instanceof ByteArrayInputStream)
         {
-          bytes = ((ByteArrayInputStream)content).readAllBytes();
+          bytes = IOUtils.toByteArray((ByteArrayInputStream)content);
         }
         else if (content instanceof String)
         {
