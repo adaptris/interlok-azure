@@ -1,7 +1,9 @@
 package com.adaptris.interlok.azure;
 
+import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisConnectionImp;
 import com.adaptris.core.CoreException;
+import com.adaptris.interlok.resolver.ExternalResolver;
 import com.microsoft.aad.msal4j.ClientCredentialFactory;
 import com.microsoft.aad.msal4j.ClientCredentialParameters;
 import com.microsoft.aad.msal4j.ConfidentialClientApplication;
@@ -29,6 +31,7 @@ public class AzureConnection extends AdaptrisConnectionImp
 	@Getter
 	@Setter
 	@NotBlank
+	@InputFieldHint(style = "PASSWORD", external = true)
 	private String clientSecret;
 
 	private transient ConfidentialClientApplication confidentialClientApplication;
@@ -53,7 +56,7 @@ public class AzureConnection extends AdaptrisConnectionImp
 		try
 		{
 			confidentialClientApplication = ConfidentialClientApplication.builder(applicationId,
-					ClientCredentialFactory.createFromSecret(clientSecret))
+					ClientCredentialFactory.createFromSecret(clientSecret()))
 					.authority(tenant())
 					.build();
 		}
@@ -105,5 +108,10 @@ public class AzureConnection extends AdaptrisConnectionImp
 	private String tenant()
 	{
 		return String.format("https://login.microsoftonline.com/%s", tenantId);
+	}
+
+	private String clientSecret()
+	{
+		return ExternalResolver.resolve(clientSecret);
 	}
 }

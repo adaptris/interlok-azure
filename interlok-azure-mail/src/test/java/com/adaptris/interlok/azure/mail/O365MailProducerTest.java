@@ -2,7 +2,6 @@ package com.adaptris.interlok.azure.mail;
 
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
-import com.adaptris.core.NullConnection;
 import com.adaptris.core.StandaloneProducer;
 import com.adaptris.interlok.azure.AzureConnection;
 import com.adaptris.interlok.junit.scaffolding.ExampleProducerCase;
@@ -12,7 +11,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
