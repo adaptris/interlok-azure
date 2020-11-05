@@ -32,7 +32,6 @@ import com.microsoft.graph.models.extensions.FileAttachment;
 import com.microsoft.graph.models.extensions.IGraphServiceClient;
 import com.microsoft.graph.models.extensions.InternetMessageHeader;
 import com.microsoft.graph.models.extensions.Message;
-import com.microsoft.graph.requests.extensions.GraphServiceClient;
 import com.microsoft.graph.requests.extensions.IAttachmentCollectionPage;
 import com.microsoft.graph.requests.extensions.IAttachmentRequest;
 import com.microsoft.graph.requests.extensions.IMessageCollectionPage;
@@ -41,6 +40,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.mail.BodyPart;
 import javax.mail.internet.MimeMultipart;
@@ -75,6 +75,21 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
   @InputFieldDefault("false")
   private Boolean delete;
 
+  @Getter
+  @Setter
+  @AdvancedConfig(rare = true)
+  @InputFieldHint(friendly = "The folder to check for emails.")
+  @InputFieldDefault("inbox")
+  private String folder;
+
+  @Getter
+  @Setter
+  @AdvancedConfig(rare = true)
+  @InputFieldHint(friendly = "How to filter the emails (see https://docs.microsoft.com/en-us/graph/query-parameters#filter-parameter).")
+  @InputFieldDefault("isRead eq false")
+  private String filter;
+
+
   @Override
   protected void prepareConsumer()
   {
@@ -90,10 +105,10 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
     try
     {
       AzureConnection connection = retrieveConnection(AzureConnection.class);
-      IGraphServiceClient graphClient = GraphServiceClient.builder().authenticationProvider(request -> request.addHeader("Authorization", "Bearer " + connection.getAccessToken())).buildClient();
+      IGraphServiceClient graphClient = connection.getClient();
 
       // TODO Allow the end user to choose the folder and filter themselves
-      IMessageCollectionPage messages = graphClient.users(username).mailFolders("inbox").messages().buildRequest().filter("isRead eq false").get();
+      IMessageCollectionPage messages = graphClient.users(username).mailFolders(folder()).messages().buildRequest().filter(filter()).get();
 
       // TODO handle multiple pages...
       log.debug("Found {} messages", messages.getCurrentPage().size());
@@ -193,6 +208,16 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
   private boolean delete()
   {
     return BooleanUtils.toBooleanDefaultIfNull(delete, false);
+  }
+
+  private String folder()
+  {
+    return StringUtils.defaultString(folder, "inbox");
+  }
+
+  private String filter()
+  {
+    return StringUtils.defaultString(filter, "isRead eq false");
   }
 
   private void addAttachmentToAdaptrisMessage(MultiPayloadAdaptrisMessage message, String name, byte[] attachment)

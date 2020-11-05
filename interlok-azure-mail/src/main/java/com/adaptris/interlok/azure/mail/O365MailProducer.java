@@ -18,7 +18,6 @@ import com.microsoft.graph.models.extensions.ItemBody;
 import com.microsoft.graph.models.extensions.Message;
 import com.microsoft.graph.models.extensions.Recipient;
 import com.microsoft.graph.models.generated.BodyType;
-import com.microsoft.graph.requests.extensions.GraphServiceClient;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.Setter;
@@ -95,7 +94,7 @@ public class O365MailProducer extends ProduceOnlyProducerImp
     try
     {
       AzureConnection connection = retrieveConnection(AzureConnection.class);
-      IGraphServiceClient graphClient = GraphServiceClient.builder().authenticationProvider(request -> request.addHeader("Authorization", "Bearer " + connection.getAccessToken())).buildClient();
+      IGraphServiceClient graphClient = connection.getClient();
 
       Message outlookMessage = new Message();
       outlookMessage.subject = adaptrisMessage.resolve(subject);
