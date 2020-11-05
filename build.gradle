@@ -24,6 +24,9 @@ ext {
 
   slf4jVersion = '1.7.30'
   mockitoVersion = '3.6.0'
+
+  msAzureVersion = "1.8.0"
+  msGraphVersion = "2.3.1"
 }
 
 if (JavaVersion.current().isJava8Compatible()) {
@@ -136,6 +139,9 @@ subprojects {
     compile ("com.adaptris:interlok-core:$interlokCoreVersion") { changing= true}
     compile ("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
     compile ("org.slf4j:slf4j-api:$slf4jVersion")
+
+    compile ("com.microsoft.azure:msal4j:$msAzureVersion")
+    compile ("com.microsoft.graph:microsoft-graph:$msGraphVersion")
 
     annotationProcessor ("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
 
