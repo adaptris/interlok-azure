@@ -7,10 +7,13 @@ import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisConnectionImp;
 import com.adaptris.core.CoreException;
 import com.adaptris.interlok.resolver.ExternalResolver;
+import com.azure.identity.ClientSecretCredential;
+import com.azure.identity.ClientSecretCredentialBuilder;
 import com.microsoft.aad.msal4j.ClientCredentialFactory;
 import com.microsoft.aad.msal4j.ClientCredentialParameters;
 import com.microsoft.aad.msal4j.ConfidentialClientApplication;
 import com.microsoft.aad.msal4j.IAuthenticationResult;
+import com.microsoft.aad.msal4j.IClientSecret;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.Setter;
@@ -42,7 +45,11 @@ public class AzureConnection extends AdaptrisConnectionImp
   @InputFieldHint(style = "PASSWORD", external = true)
   private String clientSecret;
 
+  @Getter
   private transient ConfidentialClientApplication confidentialClientApplication;
+
+  @Getter
+  private transient ClientSecretCredential clientSecretCredential;
 
   @Getter
   private transient String accessToken;
@@ -66,6 +73,13 @@ public class AzureConnection extends AdaptrisConnectionImp
       confidentialClientApplication = ConfidentialClientApplication.builder(applicationId,
           ClientCredentialFactory.createFromSecret(clientSecret()))
           .authority(tenant())
+          .build();
+
+      /* For some reason these are different; not yet sure how that's going to affect things later... */
+      clientSecretCredential = new ClientSecretCredentialBuilder()
+          .clientId(applicationId)
+          .clientSecret(clientSecret())
+          .tenantId(tenantId)
           .build();
     }
     catch (Exception e)

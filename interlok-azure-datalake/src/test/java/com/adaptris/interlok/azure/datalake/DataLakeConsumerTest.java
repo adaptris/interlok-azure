@@ -1,6 +1,7 @@
 package com.adaptris.interlok.azure.datalake;
 
 import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.FixedIntervalPoller;
 import com.adaptris.core.Poller;
 import com.adaptris.core.QuartzCronPoller;
@@ -16,6 +17,7 @@ import org.junit.Test;
 
 import java.io.FileInputStream;
 import java.io.InterruptedIOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -26,6 +28,9 @@ public class DataLakeConsumerTest extends ExampleConsumerCase
   private static final String APPLICATION_ID = "47ea49b0-670a-47c1-9303-0b45ffb766ec";
   private static final String TENANT_ID = "cbf4a38d-3117-48cd-b54b-861480ee93cd";
   private static final String CLIENT_SECRET = "NGMyYjY0MTEtOTU0Ny00NTg0LWE3MzQtODg2ZDAzZGVmZmY1Cg==";
+  private static final String ACCOUNT = "example";
+  private static final String FILE_SYSTEM = "some-fs";
+  private static final String PATH = "some/path";
 
   private static final Poller[] POLLERS =
   {
@@ -58,6 +63,10 @@ public class DataLakeConsumerTest extends ExampleConsumerCase
     connection.setClientSecret(properties.getProperty("CLIENT_SECRET", CLIENT_SECRET));
 
     consumer = new DataLakeConsumer();
+    consumer.setMessageFactory(AdaptrisMessageFactory.getDefaultInstance());
+    consumer.setAccount(properties.getProperty("ACCOUNT", ACCOUNT));
+    consumer.setFileSystem(properties.getProperty("FILE_SYSTEM", FILE_SYSTEM));
+    consumer.setPath(properties.getProperty("PATH", PATH));
   }
 
   @Test
@@ -74,12 +83,7 @@ public class DataLakeConsumerTest extends ExampleConsumerCase
       LifecycleHelper.prepare(standaloneConsumer);
       LifecycleHelper.start(standaloneConsumer);
 
-      waitForMessages(mockMessageListener, 5, 5000); // wait until we get five new emails or for 5 seconds
-
-      List<AdaptrisMessage> messages = mockMessageListener.getMessages();
-
-      System.out.println("Received " + messages.size() + " messages");
-      Thread.sleep(5000); // sleep for 5 seconds, otherwise the Graph SDK complains we disconnected while waiting for a response
+      waitForMessages(mockMessageListener, 1, 25000);
     }
     catch (InterruptedIOException | InterruptedException e)
     {
@@ -89,6 +93,14 @@ public class DataLakeConsumerTest extends ExampleConsumerCase
     {
       stop(standaloneConsumer);
     }
+
+    List<AdaptrisMessage> messages = mockMessageListener.getMessages();
+    System.out.println("Received " + messages.size() + " messages");
+    for (AdaptrisMessage message : messages)
+    {
+      System.out.println(message.getMetadataValue("filename") + " [" + message.getMetadataValue("size") + "] : " + message.getContent());
+    }
+
   }
 
   @Override
