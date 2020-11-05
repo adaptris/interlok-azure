@@ -4,7 +4,7 @@ ext {
 }
 
 dependencies {
-  compile group: "com.microsoft.azure", name: "msal4j", version: "1.6.2"
+  compile group: "com.microsoft.azure", name: "msal4j", version: "1.8.0"
   compile ("commons-codec:commons-codec:1.15")
   compile ("com.fasterxml.jackson.core:jackson-databind:2.11.3")
   compile ("com.fasterxml.jackson.core:jackson-core:2.11.3")
@@ -55,7 +55,7 @@ publishing {
         asNode().appendNode("name", componentName)
         asNode().appendNode("description", "Components that interact Outlook/Exchange in Office365 ")
         def properties = asNode().appendNode("properties")
-        properties.appendNode("target", "3.9.2+")
+        properties.appendNode("target", "3.11.1+")
         properties.appendNode("tags", "azure,office365,outlook,exchange")
         properties.appendNode("license", "false")
       }
