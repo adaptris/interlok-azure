@@ -104,7 +104,7 @@ public class O365MailConsumerTest extends ExampleConsumerCase
   @Override
   protected List<StandaloneConsumer> retrieveObjectsForSampleConfig()
   {
-    List<StandaloneConsumer> result = new ArrayList();
+    List<StandaloneConsumer> result = new ArrayList<>();
     for (Poller poller : POLLERS)
     {
       StandaloneConsumer standaloneConsumer = (StandaloneConsumer)retrieveObjectForSampleConfig();
