@@ -46,7 +46,7 @@ public class OneDriveConsumerTest extends ExampleConsumerCase
     Properties properties = new Properties();
     try
     {
-      properties.load(new FileInputStream(this.getClass().getResource("o365.properties").getFile()));
+      properties.load(new FileInputStream(this.getClass().getResource("onedrive.properties").getFile()));
       runTests = true;
     }
     catch (Exception e)
@@ -65,7 +65,7 @@ public class OneDriveConsumerTest extends ExampleConsumerCase
   }
 
   @Test
-  public void testConsumer() throws Exception
+  public void testLiveConsumer() throws Exception
   {
     Assume.assumeTrue(runTests);
 
@@ -78,11 +78,11 @@ public class OneDriveConsumerTest extends ExampleConsumerCase
       LifecycleHelper.prepare(standaloneConsumer);
       LifecycleHelper.start(standaloneConsumer);
 
-      waitForMessages(mockMessageListener, 5, 5000); // wait until we get five new emails or for 5 seconds
+      waitForMessages(mockMessageListener, 1, 25000);
 
       List<AdaptrisMessage> messages = mockMessageListener.getMessages();
 
-      System.out.println("Found " + messages.size() + " emails");
+      System.out.println("Found " + messages.size() + " files");
       Thread.sleep(5000); // sleep for 5 seconds, otherwise the Graph SDK complains we disconnected while waiting for a response
     }
     catch (InterruptedIOException | InterruptedException e)

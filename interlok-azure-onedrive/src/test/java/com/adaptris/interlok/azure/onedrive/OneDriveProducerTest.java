@@ -22,7 +22,6 @@ public class OneDriveProducerTest extends ExampleProducerCase
   private static final String CLIENT_SECRET = "NGMyYjY0MTEtOTU0Ny00NTg0LWE3MzQtODg2ZDAzZGVmZmY1Cg==";
   private static final String USERNAME = "user@example.com";
 
-  private static final String SUBJECT = "InterlokMail Office365 Test Message";
   private static final String MESSAGE = "Bacon ipsum dolor amet tail landjaeger ribeye sausage, prosciutto pork belly strip steak pork loin pork bacon biltong ham hock leberkas boudin chicken. Brisket sirloin ground round, drumstick cupim rump chislic tongue short loin pastrami bresaola pork belly alcatra spare ribs buffalo. Swine chuck frankfurter pancetta. Corned beef spare ribs pork kielbasa, chuck jerky t-bone ground round burgdoggen.";
 
   private AzureConnection connection;
@@ -52,9 +51,6 @@ public class OneDriveProducerTest extends ExampleProducerCase
     producer = new OneDriveProducer();
     producer.registerConnection(connection);
     producer.setUsername(properties.getProperty("USERNAME", USERNAME));
-    producer.setSubject(SUBJECT);
-    producer.setToRecipients(properties.getProperty("USERNAME", USERNAME)); // send it to ourself so we're not spamming anyone else
-    producer.setSave(true);
   }
 
   @Test
