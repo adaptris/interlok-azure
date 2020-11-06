@@ -5,8 +5,7 @@ ext {
 
 dependencies {
   compile project(':interlok-azure-core')
-  compile group: "com.microsoft.azure", name: "msal4j", version: "1.8.0"
-  compile ("com.azure:azure-storage-file-datalake:12.2.0")
+
   compile ("com.google.guava:guava:29.0-jre")
   compile ("commons-codec:commons-codec:1.15")
   compile ("com.fasterxml.jackson.core:jackson-databind:2.11.3")
