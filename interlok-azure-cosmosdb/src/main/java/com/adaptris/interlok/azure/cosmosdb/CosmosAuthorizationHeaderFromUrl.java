@@ -1,7 +1,5 @@
 package com.adaptris.interlok.azure.cosmosdb;
 
-import java.net.URL;
-import javax.validation.constraints.NotBlank;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldHint;
@@ -17,6 +15,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
+
+import javax.validation.constraints.NotBlank;
+import java.net.URL;
 
 /**
  * Builds an authorization header for Azure CosmosDB from a URL.

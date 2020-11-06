@@ -1,19 +1,21 @@
 package com.adaptris.interlok.azure.cosmosdb;
 
+import com.microsoft.azure.documentdb.internal.Paths;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
+import org.apache.commons.lang3.BooleanUtils;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.net.URL;
+import java.util.Arrays;
+
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.stripEnd;
 import static org.apache.commons.lang3.StringUtils.stripStart;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.net.URL;
-import java.util.Arrays;
-import org.apache.commons.lang3.BooleanUtils;
-import com.microsoft.azure.documentdb.internal.Paths;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
 
 /**
  * This is to assist the UI with type-ahead on the ResourceTypes/ResourceSegments

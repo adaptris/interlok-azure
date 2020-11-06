@@ -1,13 +1,15 @@
 package com.adaptris.interlok.azure.cosmosdb;
 
-import static com.adaptris.core.ServiceCase.execute;
-import static com.adaptris.interlok.azure.cosmosdb.CosmosAuthorizationHeaderTest.DUMMY_MASTER_KEY;
-import static org.junit.Assert.assertTrue;
-import java.net.URLDecoder;
-import org.junit.Test;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.ServiceException;
+import org.junit.Test;
+
+import java.net.URLDecoder;
+
+import static com.adaptris.core.ServiceCase.execute;
+import static com.adaptris.interlok.azure.cosmosdb.CosmosAuthorizationHeaderTest.DUMMY_MASTER_KEY;
+import static org.junit.Assert.assertTrue;
 
 public class CosmosAuthorizationHeaderFromUrlTest {
 
