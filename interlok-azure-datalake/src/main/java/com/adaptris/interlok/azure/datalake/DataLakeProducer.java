@@ -63,8 +63,8 @@ public class DataLakeProducer extends ProduceOnlyProducerImp
     {
       DataLakeConnection connection = retrieveConnection(DataLakeConnection.class);
       DataLakeServiceClient dataLakeServiceClient = connection.getClientConnection();
-      DataLakeFileSystemClient fileSystemClient = dataLakeServiceClient.getFileSystemClient(fileSystem);
-      DataLakeDirectoryClient directoryClient = fileSystemClient.getDirectoryClient(path);
+      DataLakeFileSystemClient fileSystemClient = dataLakeServiceClient.getFileSystemClient(d);
+      DataLakeDirectoryClient directoryClient = fileSystemClient.getDirectoryClient(p);
       DataLakeFileClient fileClient = directoryClient.createFile(f);
 
       InputStream stream = adaptrisMessage.getInputStream();

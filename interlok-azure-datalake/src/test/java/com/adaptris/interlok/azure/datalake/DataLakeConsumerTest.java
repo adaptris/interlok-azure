@@ -84,7 +84,7 @@ public class DataLakeConsumerTest extends ExampleConsumerCase
       LifecycleHelper.prepare(standaloneConsumer);
       LifecycleHelper.start(standaloneConsumer);
 
-      waitForMessages(mockMessageListener, 1, 25000);
+      waitForMessages(mockMessageListener, 5, 25000);
     }
     catch (InterruptedIOException | InterruptedException e)
     {

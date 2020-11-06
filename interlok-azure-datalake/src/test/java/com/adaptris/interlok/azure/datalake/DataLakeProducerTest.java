@@ -24,6 +24,7 @@ public class DataLakeProducerTest extends ExampleProducerCase
   private static final String ACCOUNT = "example";
   private static final String FILE_SYSTEM = "some-fs";
   private static final String PATH = "some/path";
+  private static final String NAME = "file001";
 
   private static final String MESSAGE = "Bacon ipsum dolor amet tail landjaeger ribeye sausage, prosciutto pork belly strip steak pork loin pork bacon biltong ham hock leberkas boudin chicken. Brisket sirloin ground round, drumstick cupim rump chislic tongue short loin pastrami bresaola pork belly alcatra spare ribs buffalo. Swine chuck frankfurter pancetta. Corned beef spare ribs pork kielbasa, chuck jerky t-bone ground round burgdoggen.";
 
@@ -57,6 +58,7 @@ public class DataLakeProducerTest extends ExampleProducerCase
     producer.registerConnection(connection);
     producer.setFileSystem(properties.getProperty("FILE_SYSTEM", FILE_SYSTEM));
     producer.setPath(properties.getProperty("PATH", PATH));
+    producer.setFilename(properties.getProperty("FILE_NAME", NAME));
   }
 
   @Test
