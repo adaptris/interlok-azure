@@ -4,6 +4,7 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.StandaloneProducer;
 import com.adaptris.interlok.azure.AzureConnection;
+import com.adaptris.interlok.azure.GraphAPIConnection;
 import com.adaptris.interlok.junit.scaffolding.ExampleProducerCase;
 import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
 import org.junit.Assume;
@@ -44,7 +45,7 @@ public class OneDriveProducerTest extends ExampleProducerCase
       // do nothing
     }
 
-    connection = new AzureConnection();
+    connection = new GraphAPIConnection();
     connection.setApplicationId(properties.getProperty("APPLICATION_ID", APPLICATION_ID));
     connection.setTenantId(properties.getProperty("TENANT_ID", TENANT_ID));
     connection.setClientSecret(properties.getProperty("CLIENT_SECRET", CLIENT_SECRET));
@@ -52,9 +53,6 @@ public class OneDriveProducerTest extends ExampleProducerCase
     producer = new OneDriveProducer();
     producer.registerConnection(connection);
     producer.setUsername(properties.getProperty("USERNAME", USERNAME));
-    producer.setSubject(SUBJECT);
-    producer.setToRecipients(properties.getProperty("USERNAME", USERNAME)); // send it to ourself so we're not spamming anyone else
-    producer.setSave(true);
   }
 
   @Test

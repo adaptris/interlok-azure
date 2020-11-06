@@ -26,7 +26,7 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisPollingConsumer;
 import com.adaptris.core.MultiPayloadAdaptrisMessage;
 import com.adaptris.core.util.DestinationHelper;
-import com.adaptris.interlok.azure.AzureConnection;
+import com.adaptris.interlok.azure.GraphAPIConnection;
 import com.microsoft.graph.models.extensions.Attachment;
 import com.microsoft.graph.models.extensions.FileAttachment;
 import com.microsoft.graph.models.extensions.IGraphServiceClient;
@@ -104,8 +104,8 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
     int count = 0;
     try
     {
-      AzureConnection connection = retrieveConnection(AzureConnection.class);
-      IGraphServiceClient graphClient = connection.getClient();
+      GraphAPIConnection connection = retrieveConnection(GraphAPIConnection.class);
+      IGraphServiceClient graphClient = connection.getClientConnection();
 
       // TODO Allow the end user to choose the folder and filter themselves
       IMessageCollectionPage messages = graphClient.users(username).mailFolders(folder()).messages().buildRequest().filter(filter()).get();

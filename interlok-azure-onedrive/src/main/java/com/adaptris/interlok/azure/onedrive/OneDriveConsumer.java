@@ -17,38 +17,17 @@
 package com.adaptris.interlok.azure.onedrive;
 
 import com.adaptris.annotation.AdapterComponent;
-import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
-import com.adaptris.annotation.InputFieldDefault;
-import com.adaptris.annotation.InputFieldHint;
-import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisPollingConsumer;
-import com.adaptris.core.MultiPayloadAdaptrisMessage;
 import com.adaptris.core.util.DestinationHelper;
-import com.adaptris.interlok.azure.AzureConnection;
-import com.microsoft.graph.models.extensions.Attachment;
-import com.microsoft.graph.models.extensions.FileAttachment;
+import com.adaptris.interlok.azure.GraphAPIConnection;
 import com.microsoft.graph.models.extensions.IGraphServiceClient;
-import com.microsoft.graph.models.extensions.InternetMessageHeader;
-import com.microsoft.graph.models.extensions.Message;
-import com.microsoft.graph.requests.extensions.GraphServiceClient;
-import com.microsoft.graph.requests.extensions.IAttachmentCollectionPage;
-import com.microsoft.graph.requests.extensions.IAttachmentRequest;
-import com.microsoft.graph.requests.extensions.IMessageCollectionPage;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang3.BooleanUtils;
 
-import javax.mail.BodyPart;
-import javax.mail.internet.MimeMultipart;
-import javax.mail.util.ByteArrayDataSource;
 import javax.validation.constraints.NotBlank;
-import java.io.ByteArrayInputStream;
-import java.util.Base64;
-
-import static java.nio.charset.StandardCharsets.US_ASCII;
 
 /**
  * Implementation of a file consumer that can retrieve files from
@@ -81,8 +60,8 @@ public class OneDriveConsumer extends AdaptrisPollingConsumer
     int count = 0;
     try
     {
-      AzureConnection connection = retrieveConnection(AzureConnection.class);
-      IGraphServiceClient graphClient = GraphServiceClient.builder().authenticationProvider(request -> request.addHeader("Authorization", "Bearer " + connection.getAccessToken())).buildClient();
+      GraphAPIConnection connection = retrieveConnection(GraphAPIConnection.class);
+      IGraphServiceClient graphClient = connection.getClientConnection();
 
 
 //        count++;

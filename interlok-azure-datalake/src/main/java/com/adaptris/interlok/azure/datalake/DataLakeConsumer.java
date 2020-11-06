@@ -22,33 +22,21 @@ import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisPollingConsumer;
 import com.adaptris.core.util.DestinationHelper;
-import com.adaptris.interlok.azure.AzureConnection;
-import com.azure.core.credential.AccessToken;
-import com.azure.core.credential.TokenCredential;
-import com.azure.core.credential.TokenRequestContext;
+import com.adaptris.interlok.azure.DataLakeConnection;
 import com.azure.core.http.rest.PagedIterable;
 import com.azure.storage.file.datalake.DataLakeDirectoryClient;
 import com.azure.storage.file.datalake.DataLakeFileClient;
 import com.azure.storage.file.datalake.DataLakeFileSystemClient;
 import com.azure.storage.file.datalake.DataLakeServiceClient;
-import com.azure.storage.file.datalake.DataLakeServiceClientBuilder;
 import com.azure.storage.file.datalake.models.ListPathsOptions;
 import com.azure.storage.file.datalake.models.PathItem;
-import com.microsoft.aad.msal4j.ClientCredentialFactory;
-import com.microsoft.aad.msal4j.ConfidentialClientApplication;
-import com.microsoft.aad.msal4j.IClientSecret;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import reactor.core.publisher.Mono;
 
 import javax.validation.constraints.NotBlank;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Iterator;
 
 @XStreamAlias("data-lake-consumer")
 @AdapterComponent
@@ -56,11 +44,6 @@ import java.util.Iterator;
 @DisplayOrder(order = { })
 public class DataLakeConsumer extends AdaptrisPollingConsumer
 {
-  @Getter
-  @Setter
-  @NotBlank
-  private String account;
-
   @Getter
   @Setter
   @NotBlank
@@ -85,12 +68,11 @@ public class DataLakeConsumer extends AdaptrisPollingConsumer
     int count = 0;
     try
     {
-      AzureConnection connection = retrieveConnection(AzureConnection.class);
+      DataLakeConnection connection = retrieveConnection(DataLakeConnection.class);
 
       log.debug("Scanning {}:{} for files", fileSystem, path);
 
-      DataLakeServiceClientBuilder builder = new DataLakeServiceClientBuilder();
-      DataLakeServiceClient dataLakeServiceClient = builder.credential(connection.getClientSecretCredential()).endpoint(endpoint()).buildClient();
+      DataLakeServiceClient dataLakeServiceClient = connection.getClientConnection();
       DataLakeFileSystemClient fileSystemClient = dataLakeServiceClient.getFileSystemClient(fileSystem);
       DataLakeDirectoryClient directoryClient = fileSystemClient.getDirectoryClient(path);
 
@@ -135,9 +117,6 @@ public class DataLakeConsumer extends AdaptrisPollingConsumer
     return DestinationHelper.threadName(retrieveAdaptrisMessageListener(), null);
   }
 
-  private String endpoint()
-  {
-    return String.format("https://%s.dfs.core.windows.net", account);
-  }
+
 }
 

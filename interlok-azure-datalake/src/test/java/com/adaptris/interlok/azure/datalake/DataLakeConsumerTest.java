@@ -9,6 +9,7 @@ import com.adaptris.core.StandaloneConsumer;
 import com.adaptris.core.stubs.MockMessageListener;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.interlok.azure.AzureConnection;
+import com.adaptris.interlok.azure.DataLakeConnection;
 import com.adaptris.interlok.junit.scaffolding.ExampleConsumerCase;
 import com.adaptris.util.TimeInterval;
 import org.junit.Assume;
@@ -17,7 +18,6 @@ import org.junit.Test;
 
 import java.io.FileInputStream;
 import java.io.InterruptedIOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -57,14 +57,15 @@ public class DataLakeConsumerTest extends ExampleConsumerCase
       // do nothing
     }
 
-    connection = new AzureConnection();
+    connection = new DataLakeConnection();
     connection.setApplicationId(properties.getProperty("APPLICATION_ID", APPLICATION_ID));
     connection.setTenantId(properties.getProperty("TENANT_ID", TENANT_ID));
     connection.setClientSecret(properties.getProperty("CLIENT_SECRET", CLIENT_SECRET));
 
+    ((DataLakeConnection)connection).setAccount(properties.getProperty("ACCOUNT", ACCOUNT));
+
     consumer = new DataLakeConsumer();
     consumer.setMessageFactory(AdaptrisMessageFactory.getDefaultInstance());
-    consumer.setAccount(properties.getProperty("ACCOUNT", ACCOUNT));
     consumer.setFileSystem(properties.getProperty("FILE_SYSTEM", FILE_SYSTEM));
     consumer.setPath(properties.getProperty("PATH", PATH));
   }

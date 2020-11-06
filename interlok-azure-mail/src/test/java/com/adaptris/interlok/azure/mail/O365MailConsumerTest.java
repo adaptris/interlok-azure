@@ -9,6 +9,7 @@ import com.adaptris.core.StandaloneConsumer;
 import com.adaptris.core.stubs.MockMessageListener;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.interlok.azure.AzureConnection;
+import com.adaptris.interlok.azure.GraphAPIConnection;
 import com.adaptris.interlok.junit.scaffolding.ExampleConsumerCase;
 import com.adaptris.util.TimeInterval;
 import com.microsoft.graph.models.extensions.EmailAddress;
@@ -69,11 +70,11 @@ public class O365MailConsumerTest extends ExampleConsumerCase
     {
       properties.load(new FileInputStream(this.getClass().getResource("o365.properties").getFile()));
       liveTests = true;
-      connection = new AzureConnection();
+      connection = new GraphAPIConnection();
     }
     catch (Exception e)
     {
-      connection = mock(AzureConnection.class);
+      connection = mock(GraphAPIConnection.class);
     }
 
     connection.setApplicationId(properties.getProperty("APPLICATION_ID", APPLICATION_ID));
@@ -130,7 +131,7 @@ public class O365MailConsumerTest extends ExampleConsumerCase
       when(connection.retrieveConnection(any())).thenReturn(connection);
 
       IGraphServiceClient client = mock(IGraphServiceClient.class);
-      when(connection.getClient()).thenReturn(client);
+      when(connection.getClientConnection()).thenReturn(client);
       IUserRequestBuilder userRequestBuilder = mock(IUserRequestBuilder.class);
       when(client.users(anyString())).thenReturn(userRequestBuilder);
       IMailFolderRequestBuilder mailRequestBuilder = mock(IMailFolderRequestBuilder.class);

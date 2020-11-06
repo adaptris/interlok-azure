@@ -7,6 +7,10 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ProduceException;
 import com.adaptris.core.ProduceOnlyProducerImp;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.Getter;
+import lombok.Setter;
+
+import javax.validation.constraints.NotBlank;
 
 @XStreamAlias("data-lake-producer")
 @AdapterComponent
@@ -14,6 +18,16 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @DisplayOrder(order = { })
 public class DataLakeProducer extends ProduceOnlyProducerImp
 {
+  @Getter
+  @Setter
+  @NotBlank
+  private String fileSystem;
+
+  @Getter
+  @Setter
+  @NotBlank
+  private String path;
+
   @Override
   public void prepare()
   {
