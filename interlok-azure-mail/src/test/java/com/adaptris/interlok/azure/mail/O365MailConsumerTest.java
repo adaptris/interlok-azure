@@ -75,6 +75,7 @@ public class O365MailConsumerTest extends ExampleConsumerCase
     catch (Exception e)
     {
       connection = mock(GraphAPIConnection.class);
+      when(connection.getWorkersFirstOnShutdown()).thenReturn(null);
     }
 
     connection.setApplicationId(properties.getProperty("APPLICATION_ID", APPLICATION_ID));
