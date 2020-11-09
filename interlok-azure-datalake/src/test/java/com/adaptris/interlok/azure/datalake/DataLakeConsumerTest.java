@@ -62,13 +62,13 @@ public class DataLakeConsumerTest extends ExampleConsumerCase
     {
       properties.load(new FileInputStream(this.getClass().getResource("datalake.properties").getFile()));
       runTests = true;
-      connection = new DataLakeConnection();
     }
     catch (Exception e)
     {
-      connection = mock(DataLakeConnection.class);
+      // do nothing
     }
 
+    connection = new DataLakeConnection();
     connection.setApplicationId(properties.getProperty("APPLICATION_ID", APPLICATION_ID));
     connection.setTenantId(properties.getProperty("TENANT_ID", TENANT_ID));
     connection.setClientSecret(properties.getProperty("CLIENT_SECRET", CLIENT_SECRET));
@@ -76,6 +76,7 @@ public class DataLakeConsumerTest extends ExampleConsumerCase
     ((DataLakeConnection)connection).setAccount(properties.getProperty("ACCOUNT", ACCOUNT));
 
     consumer = new DataLakeConsumer();
+    consumer.registerConnection(connection);
     consumer.setMessageFactory(AdaptrisMessageFactory.getDefaultInstance());
     consumer.setFileSystem(properties.getProperty("FILE_SYSTEM", FILE_SYSTEM));
     consumer.setPath(properties.getProperty("PATH", PATH));
@@ -119,12 +120,14 @@ public class DataLakeConsumerTest extends ExampleConsumerCase
   {
     Assume.assumeFalse(runTests);
 
+    connection = mock(DataLakeConnection.class);
+    consumer.registerConnection(connection);
+
     MockMessageListener mockMessageListener = new MockMessageListener(10);
     StandaloneConsumer standaloneConsumer = new StandaloneConsumer(connection, consumer);
     standaloneConsumer.registerAdaptrisMessageListener(mockMessageListener);
     try
     {
-      consumer.registerConnection(connection);
       when(connection.retrieveConnection(any())).thenReturn(connection);
 
       DataLakeServiceClient client = mock(DataLakeServiceClient.class);

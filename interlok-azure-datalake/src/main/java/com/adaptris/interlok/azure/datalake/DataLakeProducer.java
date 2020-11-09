@@ -17,8 +17,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.validation.constraints.NotBlank;
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
 import java.io.InputStream;
 
 @XStreamAlias("data-lake-producer")

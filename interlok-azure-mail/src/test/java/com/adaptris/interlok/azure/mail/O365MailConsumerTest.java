@@ -70,19 +70,19 @@ public class O365MailConsumerTest extends ExampleConsumerCase
     {
       properties.load(new FileInputStream(this.getClass().getResource("o365.properties").getFile()));
       liveTests = true;
-      connection = new GraphAPIConnection();
     }
     catch (Exception e)
     {
-      connection = mock(GraphAPIConnection.class);
-      when(connection.getWorkersFirstOnShutdown()).thenReturn(null);
+      // do nothing
     }
 
+    connection = new GraphAPIConnection();
     connection.setApplicationId(properties.getProperty("APPLICATION_ID", APPLICATION_ID));
     connection.setTenantId(properties.getProperty("TENANT_ID", TENANT_ID));
     connection.setClientSecret(properties.getProperty("CLIENT_SECRET", CLIENT_SECRET));
 
     consumer = new O365MailConsumer();
+    consumer.registerConnection(connection);
     consumer.setUsername(properties.getProperty("USERNAME", USERNAME));
     consumer.setMessageFactory(new MultiPayloadMessageFactory());
   }
@@ -123,12 +123,14 @@ public class O365MailConsumerTest extends ExampleConsumerCase
   {
     Assume.assumeFalse(liveTests);
 
+    connection = mock(GraphAPIConnection.class);
+    consumer.registerConnection(connection);
+
     MockMessageListener mockMessageListener = new MockMessageListener(10);
     StandaloneConsumer standaloneConsumer = new StandaloneConsumer(connection, consumer);
     standaloneConsumer.registerAdaptrisMessageListener(mockMessageListener);
     try
     {
-      consumer.registerConnection(connection);
       when(connection.retrieveConnection(any())).thenReturn(connection);
 
       IGraphServiceClient client = mock(IGraphServiceClient.class);

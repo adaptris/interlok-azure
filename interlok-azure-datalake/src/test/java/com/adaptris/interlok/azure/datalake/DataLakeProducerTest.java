@@ -53,13 +53,13 @@ public class DataLakeProducerTest extends ExampleProducerCase
     {
       properties.load(new FileInputStream(this.getClass().getResource("datalake.properties").getFile()));
       runTests = true;
-      connection = new DataLakeConnection();
     }
     catch (Exception e)
     {
-      connection = mock(DataLakeConnection.class);
+      // do nothing
     }
 
+    connection = new DataLakeConnection();
     connection.setApplicationId(properties.getProperty("APPLICATION_ID", APPLICATION_ID));
     connection.setTenantId(properties.getProperty("TENANT_ID", TENANT_ID));
     connection.setClientSecret(properties.getProperty("CLIENT_SECRET", CLIENT_SECRET));
@@ -88,7 +88,9 @@ public class DataLakeProducerTest extends ExampleProducerCase
   {
     Assume.assumeFalse(runTests);
 
+    connection = mock(DataLakeConnection.class);
     producer.registerConnection(connection);
+
     when(connection.retrieveConnection(any())).thenReturn(connection);
     DataLakeServiceClient client = mock(DataLakeServiceClient.class);
     when(connection.getClientConnection()).thenReturn(client);
