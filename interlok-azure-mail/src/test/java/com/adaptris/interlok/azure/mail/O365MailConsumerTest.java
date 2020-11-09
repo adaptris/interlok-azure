@@ -9,6 +9,7 @@ import com.adaptris.core.StandaloneConsumer;
 import com.adaptris.core.stubs.MockMessageListener;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.interlok.azure.AzureConnection;
+import com.adaptris.interlok.azure.GraphAPIConnection;
 import com.adaptris.interlok.junit.scaffolding.ExampleConsumerCase;
 import com.adaptris.util.TimeInterval;
 import com.microsoft.graph.models.extensions.EmailAddress;
@@ -69,18 +70,19 @@ public class O365MailConsumerTest extends ExampleConsumerCase
     {
       properties.load(new FileInputStream(this.getClass().getResource("o365.properties").getFile()));
       liveTests = true;
-      connection = new AzureConnection();
     }
     catch (Exception e)
     {
-      connection = mock(AzureConnection.class);
+      // do nothing
     }
 
+    connection = new GraphAPIConnection();
     connection.setApplicationId(properties.getProperty("APPLICATION_ID", APPLICATION_ID));
     connection.setTenantId(properties.getProperty("TENANT_ID", TENANT_ID));
     connection.setClientSecret(properties.getProperty("CLIENT_SECRET", CLIENT_SECRET));
 
     consumer = new O365MailConsumer();
+    consumer.registerConnection(connection);
     consumer.setUsername(properties.getProperty("USERNAME", USERNAME));
     consumer.setMessageFactory(new MultiPayloadMessageFactory());
   }
@@ -121,16 +123,18 @@ public class O365MailConsumerTest extends ExampleConsumerCase
   {
     Assume.assumeFalse(liveTests);
 
+    connection = mock(GraphAPIConnection.class);
+    consumer.registerConnection(connection);
+
     MockMessageListener mockMessageListener = new MockMessageListener(10);
     StandaloneConsumer standaloneConsumer = new StandaloneConsumer(connection, consumer);
     standaloneConsumer.registerAdaptrisMessageListener(mockMessageListener);
     try
     {
-      consumer.registerConnection(connection);
       when(connection.retrieveConnection(any())).thenReturn(connection);
 
       IGraphServiceClient client = mock(IGraphServiceClient.class);
-      when(connection.getClient()).thenReturn(client);
+      when(connection.getClientConnection()).thenReturn(client);
       IUserRequestBuilder userRequestBuilder = mock(IUserRequestBuilder.class);
       when(client.users(anyString())).thenReturn(userRequestBuilder);
       IMailFolderRequestBuilder mailRequestBuilder = mock(IMailFolderRequestBuilder.class);

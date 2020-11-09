@@ -10,7 +10,7 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.MultiPayloadAdaptrisMessage;
 import com.adaptris.core.ProduceException;
 import com.adaptris.core.ProduceOnlyProducerImp;
-import com.adaptris.interlok.azure.AzureConnection;
+import com.adaptris.interlok.azure.GraphAPIConnection;
 import com.microsoft.graph.models.extensions.EmailAddress;
 import com.microsoft.graph.models.extensions.FileAttachment;
 import com.microsoft.graph.models.extensions.IGraphServiceClient;
@@ -93,8 +93,8 @@ public class O365MailProducer extends ProduceOnlyProducerImp
 
     try
     {
-      AzureConnection connection = retrieveConnection(AzureConnection.class);
-      IGraphServiceClient graphClient = connection.getClient();
+      GraphAPIConnection connection = retrieveConnection(GraphAPIConnection.class);
+      IGraphServiceClient graphClient = connection.getClientConnection();
 
       Message outlookMessage = new Message();
       outlookMessage.subject = adaptrisMessage.resolve(subject);
