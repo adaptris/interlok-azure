@@ -22,23 +22,19 @@ import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisPollingConsumer;
 import com.adaptris.core.util.DestinationHelper;
-import com.adaptris.interlok.azure.AzureConnection;
+import com.adaptris.interlok.azure.GraphAPIConnection;
 import com.microsoft.graph.models.extensions.Drive;
 import com.microsoft.graph.models.extensions.DriveItem;
 import com.microsoft.graph.models.extensions.IGraphServiceClient;
 import com.microsoft.graph.requests.extensions.IDriveItemCollectionPage;
-import com.microsoft.graph.requests.extensions.IDriveItemCollectionRequest;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 import org.apache.commons.io.IOUtils;
 
 import javax.validation.constraints.NotBlank;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * Implementation of a file consumer that can retrieve files from
@@ -71,8 +67,8 @@ public class OneDriveConsumer extends AdaptrisPollingConsumer
     int count = 0;
     try
     {
-      AzureConnection connection = retrieveConnection(AzureConnection.class);
-      IGraphServiceClient graphClient = connection.getClient();
+      GraphAPIConnection connection = retrieveConnection(GraphAPIConnection.class);
+      IGraphServiceClient graphClient = connection.getClientConnection();
 
       Drive drive = graphClient.users(username).drive().buildRequest().get();
       IDriveItemCollectionPage children = graphClient.users(username).drives(drive.id).root().children().buildRequest().get();
