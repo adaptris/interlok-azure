@@ -12,6 +12,12 @@ import com.adaptris.interlok.azure.AzureConnection;
 import com.adaptris.interlok.azure.DataLakeConnection;
 import com.adaptris.interlok.junit.scaffolding.ExampleConsumerCase;
 import com.adaptris.util.TimeInterval;
+import com.azure.core.http.rest.PagedIterable;
+import com.azure.storage.file.datalake.DataLakeDirectoryClient;
+import com.azure.storage.file.datalake.DataLakeFileSystemClient;
+import com.azure.storage.file.datalake.DataLakeServiceClient;
+import com.azure.storage.file.datalake.models.ListPathsOptions;
+import com.azure.storage.file.datalake.models.PathItem;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,6 +28,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class DataLakeConsumerTest extends ExampleConsumerCase
 {
@@ -51,13 +62,13 @@ public class DataLakeConsumerTest extends ExampleConsumerCase
     {
       properties.load(new FileInputStream(this.getClass().getResource("datalake.properties").getFile()));
       runTests = true;
+      connection = new DataLakeConnection();
     }
     catch (Exception e)
     {
-      // do nothing
+      connection = mock(DataLakeConnection.class);
     }
 
-    connection = new DataLakeConnection();
     connection.setApplicationId(properties.getProperty("APPLICATION_ID", APPLICATION_ID));
     connection.setTenantId(properties.getProperty("TENANT_ID", TENANT_ID));
     connection.setClientSecret(properties.getProperty("CLIENT_SECRET", CLIENT_SECRET));
@@ -71,7 +82,7 @@ public class DataLakeConsumerTest extends ExampleConsumerCase
   }
 
   @Test
-  public void testConsumer() throws Exception
+  public void testLiveConsumer() throws Exception
   {
     Assume.assumeTrue(runTests);
 
@@ -84,7 +95,7 @@ public class DataLakeConsumerTest extends ExampleConsumerCase
       LifecycleHelper.prepare(standaloneConsumer);
       LifecycleHelper.start(standaloneConsumer);
 
-      waitForMessages(mockMessageListener, 5, 25000);
+      waitForMessages(mockMessageListener, 1, 5000);
     }
     catch (InterruptedIOException | InterruptedException e)
     {
@@ -101,7 +112,47 @@ public class DataLakeConsumerTest extends ExampleConsumerCase
     {
       System.out.println(message.getMetadataValue("filename") + " [" + message.getMetadataValue("size") + "] : " + message.getContent());
     }
+  }
 
+  @Test
+  public void testMockConsumer() throws Exception
+  {
+    Assume.assumeFalse(runTests);
+
+    MockMessageListener mockMessageListener = new MockMessageListener(10);
+    StandaloneConsumer standaloneConsumer = new StandaloneConsumer(connection, consumer);
+    standaloneConsumer.registerAdaptrisMessageListener(mockMessageListener);
+    try
+    {
+      consumer.registerConnection(connection);
+      when(connection.retrieveConnection(any())).thenReturn(connection);
+
+      DataLakeServiceClient client = mock(DataLakeServiceClient.class);
+      when(connection.getClientConnection()).thenReturn(client);
+      DataLakeFileSystemClient fsClient = mock(DataLakeFileSystemClient.class);
+      when(client.getFileSystemClient(FILE_SYSTEM)).thenReturn(fsClient);
+      DataLakeDirectoryClient dirClient = mock(DataLakeDirectoryClient.class);
+      when(fsClient.getDirectoryClient(PATH)).thenReturn(dirClient);
+
+      // FIXME figure out how to mock a PagedIterable...
+      PagedIterable<PathItem> p = mock(PagedIterable.class);
+      when(fsClient.listPaths(any(ListPathsOptions.class), isNull())).thenReturn(p);
+
+
+      LifecycleHelper.init(standaloneConsumer);
+      LifecycleHelper.prepare(standaloneConsumer);
+      LifecycleHelper.start(standaloneConsumer);
+
+      waitForMessages(mockMessageListener, 1, 5000);
+
+      List<AdaptrisMessage> messages = mockMessageListener.getMessages();
+
+      System.out.println("Found " + messages.size() + " emails");
+    }
+    finally
+    {
+      stop(standaloneConsumer);
+    }
   }
 
   @Override

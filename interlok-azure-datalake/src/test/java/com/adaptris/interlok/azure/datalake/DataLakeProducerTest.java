@@ -7,14 +7,26 @@ import com.adaptris.interlok.azure.AzureConnection;
 import com.adaptris.interlok.azure.DataLakeConnection;
 import com.adaptris.interlok.junit.scaffolding.ExampleProducerCase;
 import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
+import com.azure.storage.file.datalake.DataLakeDirectoryClient;
+import com.azure.storage.file.datalake.DataLakeFileClient;
+import com.azure.storage.file.datalake.DataLakeFileSystemClient;
+import com.azure.storage.file.datalake.DataLakeServiceClient;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class DataLakeProducerTest extends ExampleProducerCase
 {
@@ -41,13 +53,13 @@ public class DataLakeProducerTest extends ExampleProducerCase
     {
       properties.load(new FileInputStream(this.getClass().getResource("datalake.properties").getFile()));
       runTests = true;
+      connection = new DataLakeConnection();
     }
     catch (Exception e)
     {
-      // do nothing
+      connection = mock(DataLakeConnection.class);
     }
 
-    connection = new DataLakeConnection();
     connection.setApplicationId(properties.getProperty("APPLICATION_ID", APPLICATION_ID));
     connection.setTenantId(properties.getProperty("TENANT_ID", TENANT_ID));
     connection.setClientSecret(properties.getProperty("CLIENT_SECRET", CLIENT_SECRET));
@@ -62,13 +74,38 @@ public class DataLakeProducerTest extends ExampleProducerCase
   }
 
   @Test
-  public void testProducer() throws Exception
+  public void testLiveProducer() throws Exception
   {
     Assume.assumeTrue(runTests);
 
     AdaptrisMessage message = AdaptrisMessageFactory.getDefaultInstance().newMessage(MESSAGE);
     StandaloneProducer standaloneProducer = new StandaloneProducer(connection, producer);
     ExampleServiceCase.execute(standaloneProducer, message);
+  }
+
+  @Test
+  public void testMockProducer() throws Exception
+  {
+    Assume.assumeFalse(runTests);
+
+    producer.registerConnection(connection);
+    when(connection.retrieveConnection(any())).thenReturn(connection);
+    DataLakeServiceClient client = mock(DataLakeServiceClient.class);
+    when(connection.getClientConnection()).thenReturn(client);
+
+    DataLakeFileSystemClient fsClient = mock(DataLakeFileSystemClient.class);
+    when(client.getFileSystemClient(FILE_SYSTEM)).thenReturn(fsClient);
+    DataLakeDirectoryClient dirClient = mock(DataLakeDirectoryClient.class);
+    when(fsClient.getDirectoryClient(PATH)).thenReturn(dirClient);
+    DataLakeFileClient fileClient = mock(DataLakeFileClient.class);
+    when(dirClient.createFile(NAME)).thenReturn(fileClient);
+
+    AdaptrisMessage message = AdaptrisMessageFactory.getDefaultInstance().newMessage(MESSAGE);
+    StandaloneProducer standaloneProducer = new StandaloneProducer(connection, producer);
+    ExampleServiceCase.execute(standaloneProducer, message);
+
+    verify(fileClient, times(1)).append(any(InputStream.class), anyLong(), anyLong());
+    verify(fileClient, times(1)).flush(MESSAGE.length());
   }
 
   @Override
