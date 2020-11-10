@@ -141,7 +141,7 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
           for (Attachment reference : attachments.getCurrentPage())
           {
             log.debug("Attachment {} is of type {} with size {}", reference.name, reference.oDataType, reference.size);
-            IAttachmentRequest request = graphClient.users(username).messages(id).attachments(reference.id).buildRequest();//new QueryOption("$value", ""));
+            IAttachmentRequest request = graphClient.users(username).messages(id).attachments(reference.id).buildRequest();//new QueryOption("value", ""));
             log.debug("URL: {}", request.getRequestUrl());
             Attachment attachment = request.get();
             if (attachment instanceof FileAttachment)

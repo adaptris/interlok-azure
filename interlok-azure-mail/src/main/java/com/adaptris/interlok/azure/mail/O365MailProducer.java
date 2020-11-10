@@ -146,12 +146,11 @@ public class O365MailProducer extends ProduceOnlyProducerImp
             attachment.contentType = "application/octet-stream";
             attachment.contentBytes = Base64.getEncoder().encode(multiPayloadAdaptrisMessage.getPayload(name));
             graphClient.users(user).messages(draftMessage.id).attachments().buildRequest().post(attachment);
-
           }
           else
           {
             log.warn("Large attachments not yet supported!");
-/*
+            /*
             AttachmentItem attachment = new AttachmentItem();
             attachment.attachmentType = AttachmentType.FILE;
             attachment.name = name;
@@ -165,7 +164,8 @@ public class O365MailProducer extends ProduceOnlyProducerImp
               @Override
               public void success(Object o)
               {
-                graphClient.users(user).messages(draftMessage.id).send().buildRequest().post();
+                // FIXME cannot mark the email ready to send unless all attachments have been uploaded...
+                //graphClient.users(user).messages(draftMessage.id).send().buildRequest().post();
               }
 
               @Override
@@ -177,11 +177,11 @@ public class O365MailProducer extends ProduceOnlyProducerImp
               @Override
               public void progress(long current, long max)
               {
-                // do nothing
+                log.debug("Uploading attachment {} progress is {} / {}", attachment.name, current, max);
               }
             });
- */
-          }
+             */
+           }
         }
         graphClient.users(user).messages(draftMessage.id).send().buildRequest().post();
       }
