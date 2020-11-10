@@ -1,7 +1,5 @@
 package com.adaptris.interlok.azure.cosmosdb;
 
-import javax.validation.constraints.NotBlank;
-import org.apache.commons.lang3.StringUtils;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
@@ -12,6 +10,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.validation.constraints.NotBlank;
 
 /**
  * Abstract base class for generating Authorization headers.
