@@ -10,9 +10,14 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ProduceException;
 import com.adaptris.core.ProduceOnlyProducerImp;
 import com.adaptris.interlok.azure.GraphAPIConnection;
+import com.microsoft.graph.concurrency.ChunkedUploadProvider;
+import com.microsoft.graph.concurrency.IProgressCallback;
+import com.microsoft.graph.core.ClientException;
 import com.microsoft.graph.models.extensions.DriveItem;
+import com.microsoft.graph.models.extensions.DriveItemUploadableProperties;
 import com.microsoft.graph.models.extensions.File;
 import com.microsoft.graph.models.extensions.IGraphServiceClient;
+import com.microsoft.graph.models.extensions.UploadSession;
 import com.microsoft.graph.requests.extensions.IDriveItemCollectionPage;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
@@ -74,10 +79,15 @@ public class OneDriveProducer extends ProduceOnlyProducerImp
       DriveItem newItem = new DriveItem();
       newItem.file = new File();
       newItem.name = adaptrisMessage.resolve(file);
+      newItem.size = adaptrisMessage.getSize();
 
       boolean isNew = true;
       if (overwrite())
       {
+        /*
+         * By default One Drive doesn't allow files to be overwritten
+         * unless the DriveItem.id matches, so quickly get it
+         */
         IDriveItemCollectionPage children = graphClient.users(user).drive().root().children().buildRequest().get();
         for (DriveItem driveItem : children.getCurrentPage())
         {
@@ -92,16 +102,41 @@ public class OneDriveProducer extends ProduceOnlyProducerImp
 
       if (isNew)
       {
+        // create what could be thought of as a directory entry
         newItem = graphClient.users(user).drive().items().buildRequest().post(newItem);
       }
 
+      // upload the file data
       if (adaptrisMessage.getSize() < 4 * FileUtils.ONE_MB)
       {
         graphClient.users(user).drive().items(newItem.id).content().buildRequest().put(adaptrisMessage.getPayload());
       }
       else
       {
-        log.warn("Large files not yet supported!");
+        String name = newItem.name;
+        UploadSession uploadSession = graphClient.users(user).drive().items(newItem.id).createUploadSession(new DriveItemUploadableProperties()).buildRequest().post();
+        ChunkedUploadProvider<DriveItem> chunkedUploadProvider = new ChunkedUploadProvider<>(uploadSession, graphClient, adaptrisMessage.getInputStream(), adaptrisMessage.getSize(), DriveItem.class);
+        chunkedUploadProvider.upload(new IProgressCallback()
+        {
+          @Override
+          public void success(Object o)
+          {
+            log.debug("Successfully uploaded {}", name);
+          }
+
+          @Override
+          public void failure(ClientException ex)
+          {
+            log.error("Could not process attachment {} for message {} : {}", name, adaptrisMessage.getUniqueId(), ex);
+          }
+
+          @Override
+          public void progress(long current, long max)
+          {
+            log.debug("Uploading file {} progress is {} / {}", name, current, max);
+          }
+        });
+
       }
     }
     catch (Exception e)

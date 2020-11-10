@@ -86,7 +86,6 @@ public class OneDriveConsumer extends AdaptrisPollingConsumer
         IOUtils.copy(remoteStream, adaptrisMessage.getOutputStream());
 
         adaptrisMessage.addMetadata("filename", driveItem.name);
-        adaptrisMessage.addMetadata("size", String.valueOf(driveItem.size));
 
         retrieveAdaptrisMessageListener().onAdaptrisMessage(adaptrisMessage);
 

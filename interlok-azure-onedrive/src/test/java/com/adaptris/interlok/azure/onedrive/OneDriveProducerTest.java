@@ -18,6 +18,7 @@ import com.microsoft.graph.requests.extensions.IDriveItemContentStreamRequestBui
 import com.microsoft.graph.requests.extensions.IDriveItemRequestBuilder;
 import com.microsoft.graph.requests.extensions.IDriveRequestBuilder;
 import com.microsoft.graph.requests.extensions.IUserRequestBuilder;
+import org.apache.commons.io.FileUtils;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
@@ -81,6 +82,25 @@ public class OneDriveProducerTest extends ExampleProducerCase
     Assume.assumeTrue(liveTests);
 
     AdaptrisMessage message = AdaptrisMessageFactory.getDefaultInstance().newMessage(MESSAGE);
+    StandaloneProducer standaloneProducer = new StandaloneProducer(connection, producer);
+    ExampleServiceCase.execute(standaloneProducer, message);
+  }
+
+  @Test
+  public void testLiveProducerLarge() throws Exception
+  {
+    Assume.assumeTrue(liveTests);
+
+    producer.setFilename("big-data.txt");
+
+    StringBuilder bigData = new StringBuilder();
+    do
+    {
+      bigData.append(MESSAGE).append("\n");
+    }
+    while (bigData.length() < 4 * FileUtils.ONE_MB);
+
+    AdaptrisMessage message = AdaptrisMessageFactory.getDefaultInstance().newMessage(bigData.toString());
     StandaloneProducer standaloneProducer = new StandaloneProducer(connection, producer);
     ExampleServiceCase.execute(standaloneProducer, message);
   }
