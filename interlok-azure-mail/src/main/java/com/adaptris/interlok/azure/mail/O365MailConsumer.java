@@ -63,6 +63,10 @@ import static java.nio.charset.StandardCharsets.US_ASCII;
 @DisplayOrder(order = { "username", "delete" })
 public class O365MailConsumer extends AdaptrisPollingConsumer
 {
+  static final String DEFAULT_FOLDER = "inbox";
+
+  static final String DEFAULT_FILTER = "isRead eq false";
+
   @Getter
   @Setter
   @NotBlank
@@ -79,14 +83,14 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
   @Setter
   @AdvancedConfig(rare = true)
   @InputFieldHint(friendly = "The folder to check for emails.")
-  @InputFieldDefault("inbox")
+  @InputFieldDefault(DEFAULT_FOLDER)
   private String folder;
 
   @Getter
   @Setter
   @AdvancedConfig(rare = true)
   @InputFieldHint(friendly = "How to filter the emails (see https://docs.microsoft.com/en-us/graph/query-parameters#filter-parameter).")
-  @InputFieldDefault("isRead eq false")
+  @InputFieldDefault(DEFAULT_FILTER)
   private String filter;
 
 
@@ -212,12 +216,12 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
 
   private String folder()
   {
-    return StringUtils.defaultString(folder, "inbox");
+    return StringUtils.defaultString(folder, DEFAULT_FOLDER);
   }
 
   private String filter()
   {
-    return StringUtils.defaultString(filter, "isRead eq false");
+    return StringUtils.defaultString(filter, DEFAULT_FILTER);
   }
 
   private void addAttachmentToAdaptrisMessage(MultiPayloadAdaptrisMessage message, String name, byte[] attachment)

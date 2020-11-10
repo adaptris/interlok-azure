@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -136,14 +137,14 @@ public class O365MailConsumerTest extends ExampleConsumerCase
       IGraphServiceClient client = mock(IGraphServiceClient.class);
       when(connection.getClientConnection()).thenReturn(client);
       IUserRequestBuilder userRequestBuilder = mock(IUserRequestBuilder.class);
-      when(client.users(anyString())).thenReturn(userRequestBuilder);
+      when(client.users(USERNAME)).thenReturn(userRequestBuilder);
       IMailFolderRequestBuilder mailRequestBuilder = mock(IMailFolderRequestBuilder.class);
-      when(userRequestBuilder.mailFolders(anyString())).thenReturn(mailRequestBuilder);
+      when(userRequestBuilder.mailFolders(O365MailConsumer.DEFAULT_FOLDER)).thenReturn(mailRequestBuilder);
       IMessageCollectionRequestBuilder messageCollectionRequestBuilder = mock(IMessageCollectionRequestBuilder.class);
       when(mailRequestBuilder.messages()).thenReturn(messageCollectionRequestBuilder);
       IMessageCollectionRequest messageCollectionRequest = mock(IMessageCollectionRequest.class);
       when(messageCollectionRequestBuilder.buildRequest()).thenReturn(messageCollectionRequest);
-      when(messageCollectionRequest.filter(anyString())).thenReturn(messageCollectionRequest);
+      when(messageCollectionRequest.filter(O365MailConsumer.DEFAULT_FILTER)).thenReturn(messageCollectionRequest);
       IMessageCollectionPage messageResponse = mock(IMessageCollectionPage.class);
       when(messageCollectionRequest.get()).thenReturn(messageResponse);
       Message message = new Message();
@@ -181,8 +182,8 @@ public class O365MailConsumerTest extends ExampleConsumerCase
 
       List<AdaptrisMessage> messages = mockMessageListener.getMessages();
 
-      System.out.println("Found " + messages.size() + " emails");
-      Thread.sleep(5000); // sleep for 5 seconds, otherwise the Graph SDK complains we disconnected while waiting for a response
+      assertEquals(1, messages.size());
+      assertEquals(MESSAGE, messages.get(0).getContent());
     }
     finally
     {

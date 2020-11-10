@@ -148,8 +148,10 @@ public class O365MailProducer extends ProduceOnlyProducerImp
             graphClient.users(user).messages(draftMessage.id).attachments().buildRequest().post(attachment);
 
           }
-/*          else
+          else
           {
+            log.warn("Large attachments not yet supported!");
+/*
             AttachmentItem attachment = new AttachmentItem();
             attachment.attachmentType = AttachmentType.FILE;
             attachment.name = name;
@@ -178,7 +180,8 @@ public class O365MailProducer extends ProduceOnlyProducerImp
                 // do nothing
               }
             });
-          }*/
+ */
+          }
         }
         graphClient.users(user).messages(draftMessage.id).send().buildRequest().post();
       }
