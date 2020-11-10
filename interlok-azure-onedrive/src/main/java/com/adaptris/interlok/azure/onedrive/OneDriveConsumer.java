@@ -70,16 +70,23 @@ public class OneDriveConsumer extends AdaptrisPollingConsumer
       GraphAPIConnection connection = retrieveConnection(GraphAPIConnection.class);
       IGraphServiceClient graphClient = connection.getClientConnection();
 
-      Drive drive = graphClient.users(username).drive().buildRequest().get();
-      IDriveItemCollectionPage children = graphClient.users(username).drives(drive.id).root().children().buildRequest().get();
+      Drive oneDrive = graphClient.users(username).drive().buildRequest().get();
+      /*
+       * TODO If paths work in the conventional sense, then it might be
+       *  useful to allow the end user to choose a path
+       */
+      IDriveItemCollectionPage children = graphClient.users(username).drives(oneDrive.id).root().children().buildRequest().get();
 
       List<DriveItem> currentPage = children.getCurrentPage();
-      log.debug("One Drive {} for user {} has {} items", drive.name, username, currentPage.size());
+      log.debug("One Drive {} for user {} has {} items", oneDrive.name, username, currentPage.size());
       for (DriveItem driveItem : currentPage)
       {
         AdaptrisMessage adaptrisMessage = getMessageFactory().newMessage();
-        InputStream remoteStream = graphClient.users(username).drives(drive.id).items(driveItem.id).content().buildRequest().get();
+        InputStream remoteStream = graphClient.users(username).drives(oneDrive.id).items(driveItem.id).content().buildRequest().get();
         IOUtils.copy(remoteStream, adaptrisMessage.getOutputStream());
+
+        adaptrisMessage.addMetadata("filename", driveItem.name);
+        adaptrisMessage.addMetadata("size", String.valueOf(driveItem.size));
 
         retrieveAdaptrisMessageListener().onAdaptrisMessage(adaptrisMessage);
 
