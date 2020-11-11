@@ -55,9 +55,9 @@ import static java.nio.charset.StandardCharsets.US_ASCII;
  * Implementation of an email consumer that is geared towards Microsoft
  * Office 365, using their Graph API and OAuth2.
  *
- * @config office-365-mail-consumer
+ * @config azure-office-365-mail-consumer
  */
-@XStreamAlias("office-365-mail-consumer")
+@XStreamAlias("azure-office-365-mail-consumer")
 @AdapterComponent
 @ComponentProfile(summary = "Pickup email from a Microsoft Office 365 account using the Microsoft Graph API", tag = "consumer,email,o365,microsoft,office,outlook,365")
 @DisplayOrder(order = { "username", "delete" })
@@ -67,11 +67,17 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
 
   static final String DEFAULT_FILTER = "isRead eq false";
 
+  /**
+   * The Office 365 username of the mailbox to poll for new messages.
+   */
   @Getter
   @Setter
   @NotBlank
   private String username;
 
+  /**
+   * Whether emails should be deleted after reading, not just marked as read.
+   */
   @Getter
   @Setter
   @AdvancedConfig
@@ -79,6 +85,11 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
   @InputFieldDefault("false")
   private Boolean delete;
 
+  /**
+   * The mailbox folder to poll for new messages.
+   *
+   * The default folder is 'Inbox'.
+   */
   @Getter
   @Setter
   @AdvancedConfig(rare = true)
@@ -86,6 +97,12 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
   @InputFieldDefault(DEFAULT_FOLDER)
   private String folder;
 
+  /**
+   * How to filter the messages.
+   *
+   * The default filter is 'isRead eq false'. See https://docs.microsoft.com/en-us/graph/query-parameters#filter-parameter
+   * for further filter parameters.
+   */
   @Getter
   @Setter
   @AdvancedConfig(rare = true)
@@ -94,12 +111,20 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
   private String filter;
 
 
+  /**
+   * {@inheritDoc}.
+   */
   @Override
   protected void prepareConsumer()
   {
     /* do nothing */
   }
 
+  /**
+   * Poll the given usernames mailbox for new messages.
+   *
+   * @return The number of new emails received.
+   */
   @Override
   protected int processMessages()
   {
@@ -203,6 +228,9 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
     return count;
   }
 
+  /**
+   * {@inheritDoc}.
+   */
   @Override
   protected String newThreadName()
   {

@@ -31,38 +31,57 @@ import javax.validation.constraints.NotBlank;
  * Implementation of a file producer that can place files into a
  * Microsoft One Drive account, using their Graph API and OAuth2.
  *
- * @config one-drive-producer
+ * @config azure-one-drive-producer
  */
-@XStreamAlias("one-drive-producer")
+@XStreamAlias("azure-one-drive-producer")
 @AdapterComponent
 @ComponentProfile(summary = "Place files into a Microsoft Office 365 One Drive account using the Microsoft Graph API", tag = "producer,file,o365,microsoft,office,365,one drive")
 @DisplayOrder(order = { "username" })
 public class OneDriveProducer extends ProduceOnlyProducerImp
 {
+  /**
+   * The username for which One Drive will be polled.
+   */
   @Getter
   @Setter
   @NotBlank
   @InputFieldHint(expression = true)
   private String username;
 
+  /**
+   * The name of the file to be uploaded.
+   */
   @Getter
   @Setter
   @NotBlank
   @InputFieldHint(expression = true)
   private String filename;
 
+  /**
+   * Whether to overwrite an existing file of the same name. (Default is true!)
+   */
   @Getter
   @Setter
   @AdvancedConfig
   @InputFieldDefault("true")
   private Boolean overwrite;
 
+  /**
+   * {@inheritDoc}.
+   */
   @Override
   public void prepare()
   {
     /* do nothing */
   }
 
+  /**
+   * Push the Adaptris message, as a file, to the given One Drive.
+   *
+   * @param adaptrisMessage The message to upload.
+   * @param endpoint        Ignored.
+   * @throws ProduceException If there was a uploading the file.
+   */
   @Override
   protected void doProduce(AdaptrisMessage adaptrisMessage, String endpoint) throws ProduceException
   {
@@ -146,6 +165,9 @@ public class OneDriveProducer extends ProduceOnlyProducerImp
     }
   }
 
+  /**
+   * {@inheritDoc}.
+   */
   @Override
   public String endpoint(AdaptrisMessage adaptrisMessage)
   {

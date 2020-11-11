@@ -40,25 +40,36 @@ import java.util.List;
  * Implementation of a file consumer that can retrieve files from
  * Microsoft One Drive, using their Graph API and OAuth2.
  *
- * @config one-drive-consumer
+ * @config azure-one-drive-consumer
  */
-@XStreamAlias("one-drive-consumer")
+@XStreamAlias("azure-one-drive-consumer")
 @AdapterComponent
 @ComponentProfile(summary = "Pickup files from a Microsoft Office 365 One Drive account using the Microsoft Graph API", tag = "consumer,file,o365,microsoft,office,365,one drive")
 @DisplayOrder(order = { "username" })
 public class OneDriveConsumer extends AdaptrisPollingConsumer
 {
+  /**
+   * The username for which One Drive will be polled.
+   */
   @Getter
   @Setter
   @NotBlank
   private String username;
 
+  /**
+   * {@inheritDoc}.
+   */
   @Override
   protected void prepareConsumer()
   {
     /* do nothing */
   }
 
+  /**
+   * Poll the given One Drive for files.
+   *
+   * @return The number of files found.
+   */
   @Override
   protected int processMessages()
   {
@@ -101,6 +112,9 @@ public class OneDriveConsumer extends AdaptrisPollingConsumer
     return count;
   }
 
+  /**
+   * {@inheritDoc}.
+   */
   @Override
   protected String newThreadName()
   {
