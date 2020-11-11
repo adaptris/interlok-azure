@@ -19,36 +19,62 @@ import lombok.Setter;
 import javax.validation.constraints.NotBlank;
 import java.io.InputStream;
 
-@XStreamAlias("data-lake-producer")
+/**
+ * Implementation of a file producer that can upload files to Microsoft
+ * Data Lake.
+ *
+ * @config azure-data-lake-producer
+ */
+@XStreamAlias("azure-data-lake-producer")
 @AdapterComponent
 @ComponentProfile(summary = "Put data into a Azure Data Lake", tag = "producer,azure,data lake,data,lake")
-@DisplayOrder(order = { })
+@DisplayOrder(order = { "fileSystem", "path", "filename" })
 public class DataLakeProducer extends ProduceOnlyProducerImp
 {
+  /**
+   * The Data Lake file system to access.
+   */
   @Getter
   @Setter
   @NotBlank
   @InputFieldHint(expression = true)
   private String fileSystem;
 
+  /**
+   * The path to poll for files.
+   */
   @Getter
   @Setter
   @NotBlank
   @InputFieldHint(expression = true)
   private String path;
 
+  /**
+   * The name of the file to put into the Data Lake.
+   */
   @Getter
   @Setter
   @NotBlank
   @InputFieldHint(expression = true)
   private String filename;
 
+  /**
+   * {@inheritDoc}.
+   */
   @Override
   public void prepare()
   {
     /* do nothing */
   }
 
+  /**
+   * Upload the given Adaptris message to the Data Lake.
+   *
+   * @param adaptrisMessage The message to upload.
+   * @param endpoint Ignored.
+   *
+   * @throws ProduceException If there is a problem uploading the file.
+   */
   @Override
   protected void doProduce(AdaptrisMessage adaptrisMessage, String endpoint) throws ProduceException
   {
@@ -77,6 +103,9 @@ public class DataLakeProducer extends ProduceOnlyProducerImp
     }
   }
 
+  /**
+   * {@inheritDoc}.
+   */
   @Override
   public String endpoint(AdaptrisMessage adaptrisMessage)
   {

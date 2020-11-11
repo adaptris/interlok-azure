@@ -38,28 +38,48 @@ import org.apache.commons.io.FilenameUtils;
 import javax.validation.constraints.NotBlank;
 import java.io.OutputStream;
 
-@XStreamAlias("data-lake-consumer")
+/**
+ * Implementation of a file consumer that can retrieve files from
+ * Microsoft Data Lake.
+ *
+ * @config azure-data-lake-consumer
+ */
+@XStreamAlias("azure-data-lake-consumer")
 @AdapterComponent
 @ComponentProfile(summary = "Pickup data frmo Azure Data Lake", tag = "consumer,azure,data lake,data,lake")
-@DisplayOrder(order = { })
+@DisplayOrder(order = { "fileSystem", "path" })
 public class DataLakeConsumer extends AdaptrisPollingConsumer
 {
+  /**
+   * The Data Lake file system to access.
+   */
   @Getter
   @Setter
   @NotBlank
   private String fileSystem;
 
+  /**
+   * The path to poll for files.
+   */
   @Getter
   @Setter
   @NotBlank
   private String path;
 
+  /**
+   * {@inheritDoc}.
+   */
   @Override
   protected void prepareConsumer()
   {
     /* do nothing */
   }
 
+  /**
+   * Process any files found on the Data Lake.
+   *
+   * @return The number of files found.
+   */
   @Override
   protected int processMessages()
   {
@@ -111,6 +131,9 @@ public class DataLakeConsumer extends AdaptrisPollingConsumer
     return count;
   }
 
+  /**
+   * {@inheritDoc}.
+   */
   @Override
   protected String newThreadName()
   {
