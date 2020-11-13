@@ -1,8 +1,10 @@
 package com.adaptris.interlok.azure.datalake;
 
 import com.adaptris.annotation.AdapterComponent;
+import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
+import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ProduceException;
@@ -15,6 +17,7 @@ import com.azure.storage.file.datalake.DataLakeServiceClient;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.BooleanUtils;
 
 import javax.validation.constraints.NotBlank;
 import java.io.InputStream;
@@ -59,6 +62,15 @@ public class DataLakeProducer extends ProduceOnlyProducerImp
   private String filename;
 
   /**
+   * Whether to overwrite existing files. Defaults to true.
+   */
+  @Getter
+  @Setter
+  @AdvancedConfig
+  @InputFieldDefault("true")
+  private Boolean overwrite;
+
+  /**
    * {@inheritDoc}.
    */
   @Override
@@ -89,7 +101,8 @@ public class DataLakeProducer extends ProduceOnlyProducerImp
       DataLakeServiceClient dataLakeServiceClient = connection.getClientConnection();
       DataLakeFileSystemClient fileSystemClient = dataLakeServiceClient.getFileSystemClient(d);
       DataLakeDirectoryClient directoryClient = fileSystemClient.getDirectoryClient(p);
-      DataLakeFileClient fileClient = directoryClient.createFile(f);
+
+      DataLakeFileClient fileClient = directoryClient.createFile(f, overwrite());
 
       InputStream stream = adaptrisMessage.getInputStream();
       long fileSize = adaptrisMessage.getSize();
@@ -110,5 +123,10 @@ public class DataLakeProducer extends ProduceOnlyProducerImp
   public String endpoint(AdaptrisMessage adaptrisMessage)
   {
     return adaptrisMessage.resolve(filename);
+  }
+
+  private boolean overwrite()
+  {
+    return BooleanUtils.toBooleanDefaultIfNull(overwrite, true);
   }
 }
