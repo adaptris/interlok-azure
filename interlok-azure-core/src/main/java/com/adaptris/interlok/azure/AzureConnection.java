@@ -12,22 +12,34 @@ import lombok.Setter;
 
 import javax.validation.constraints.NotBlank;
 
+/**
+ * Base Azure connection.
+ */
 @XStreamAlias("azure-connection")
 @AdapterComponent
 @ComponentProfile(summary = "Connect to an Azure tenant", tag = "connections,azure")
 @DisplayOrder(order = { "applicationId", "tenantId", "clientSecret" })
 public abstract class AzureConnection<C> extends AdaptrisConnectionImp
 {
+  /**
+   * The ID of the Azure application.
+   */
   @Getter
   @Setter
   @NotBlank
   protected String applicationId;
 
+  /**
+   * The tenant ID.
+   */
   @Getter
   @Setter
   @NotBlank
   protected String tenantId;
 
+  /**
+   * The application client secret.
+   */
   @Getter
   @Setter
   @NotBlank
@@ -36,6 +48,9 @@ public abstract class AzureConnection<C> extends AdaptrisConnectionImp
 
   public abstract C getClientConnection();
 
+  /**
+   * {@inheritDoc}.
+   */
   @Override
   protected void prepareConnection()
   {
@@ -43,7 +58,7 @@ public abstract class AzureConnection<C> extends AdaptrisConnectionImp
   }
 
   /**
-   * Stop the underlying connection.
+   * {@inheritDoc}.
    */
   @Override
   protected void stopConnection()
@@ -51,6 +66,9 @@ public abstract class AzureConnection<C> extends AdaptrisConnectionImp
     /* do nothing */
   }
 
+  /**
+   * {@inheritDoc}.
+   */
   /**
    * Close the underlying connection.
    */

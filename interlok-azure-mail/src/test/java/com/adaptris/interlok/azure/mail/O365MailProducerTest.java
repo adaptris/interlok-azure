@@ -42,7 +42,7 @@ public class O365MailProducerTest extends ExampleProducerCase
   private AzureConnection connection;
   private O365MailProducer producer;
 
-  private boolean runTests = false;
+  private boolean liveTests = false;
 
   @Before
   public void setUp()
@@ -51,7 +51,7 @@ public class O365MailProducerTest extends ExampleProducerCase
     try
     {
       properties.load(new FileInputStream(this.getClass().getResource("o365.properties").getFile()));
-      runTests = true;
+      liveTests = true;
     }
     catch (Exception e)
     {
@@ -74,7 +74,7 @@ public class O365MailProducerTest extends ExampleProducerCase
   @Test
   public void testLiveProducer() throws Exception
   {
-    Assume.assumeTrue(runTests);
+    Assume.assumeTrue(liveTests);
 
     AdaptrisMessage message = AdaptrisMessageFactory.getDefaultInstance().newMessage(MESSAGE);
     StandaloneProducer standaloneProducer = new StandaloneProducer(connection, producer);
@@ -84,7 +84,7 @@ public class O365MailProducerTest extends ExampleProducerCase
   @Test
   public void testMockProducer() throws Exception
   {
-    Assume.assumeFalse(runTests);
+    Assume.assumeFalse(liveTests);
 
     connection = mock(GraphAPIConnection.class);
     producer.registerConnection(connection);
@@ -94,13 +94,11 @@ public class O365MailProducerTest extends ExampleProducerCase
     when(connection.getClientConnection()).thenReturn(client);
 
     IUserRequestBuilder userRequestBuilder = mock(IUserRequestBuilder.class);
-    when(client.users(anyString())).thenReturn(userRequestBuilder);
+    when(client.users(USERNAME)).thenReturn(userRequestBuilder);
     IUserSendMailRequestBuilder sendMailBuilder = mock(IUserSendMailRequestBuilder.class);
     when(userRequestBuilder.sendMail(any(Message.class), anyBoolean())).thenReturn(sendMailBuilder);
-
     IUserSendMailRequest messageRequest = mock(IUserSendMailRequest.class);
     when(sendMailBuilder.buildRequest()).thenReturn(messageRequest);
-    when(messageRequest.select(anyString())).thenReturn(messageRequest);
 
     AdaptrisMessage message = AdaptrisMessageFactory.getDefaultInstance().newMessage(MESSAGE);
     StandaloneProducer standaloneProducer = new StandaloneProducer(connection, producer);
