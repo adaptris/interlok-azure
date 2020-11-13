@@ -10,7 +10,7 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.MultiPayloadAdaptrisMessage;
 import com.adaptris.core.ProduceException;
 import com.adaptris.core.ProduceOnlyProducerImp;
-import com.adaptris.interlok.azure.AzureConnection;
+import com.adaptris.interlok.azure.GraphAPIConnection;
 import com.microsoft.graph.models.extensions.EmailAddress;
 import com.microsoft.graph.models.extensions.FileAttachment;
 import com.microsoft.graph.models.extensions.IGraphServiceClient;
@@ -18,7 +18,6 @@ import com.microsoft.graph.models.extensions.ItemBody;
 import com.microsoft.graph.models.extensions.Message;
 import com.microsoft.graph.models.extensions.Recipient;
 import com.microsoft.graph.models.generated.BodyType;
-import com.microsoft.graph.requests.extensions.GraphServiceClient;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,43 +34,61 @@ import java.util.List;
  * Implementation of an email producer that is geared towards Microsoft
  * Office 365, using their Graph API and OAuth2.
  *
- * @config office-365-mail-producer
+ * @config azure-office-365-mail-producer
  */
-@XStreamAlias("office-365-mail-producer")
+@XStreamAlias("azure-office-365-mail-producer")
 @AdapterComponent
 @ComponentProfile(summary = "Send email using a Microsoft Office 365 account using the Microsoft Graph API", tag = "producer,email,o365,microsoft,office,outlook,365")
 @DisplayOrder(order = { "username", "subject", "toRecipients", "ccRecipients", "bccRecipients", "save" })
 public class O365MailProducer extends ProduceOnlyProducerImp
 {
+  /**
+   * The Office 365 username of the mailbox to poll for new messages.
+   */
   @Getter
   @Setter
   @NotBlank
   @InputFieldHint(expression = true)
   private String username;
 
+  /**
+   * The subject of the outgoing email.
+   */
   @Getter
   @Setter
   @InputFieldHint(expression = true)
   private String subject;
 
+  /**
+   * A comma separated list of email addresses.
+   */
   @Getter
   @Setter
   @NotBlank
   @InputFieldHint(friendly = "Comma separated list of email addresses", expression = true)
   private String toRecipients;
 
+  /**
+   * A comma separated list of email addresses.
+   */
   @Getter
   @Setter
   @AdvancedConfig
   @InputFieldHint(friendly = "Comma separated list of email addresses", expression = true)
   private String ccRecipients;
 
+  /**
+   * A comma separated list of email addresses.
+   */
   @Getter
   @Setter
   @AdvancedConfig
   @InputFieldHint(friendly = "Comma separated list of email addresses", expression = true)
   private String bccRecipients;
 
+  /**
+   * Whether to save the sent email in 'Sent Items' folder or just discard it.
+   */
   @Getter
   @Setter
   @AdvancedConfig
@@ -79,12 +96,22 @@ public class O365MailProducer extends ProduceOnlyProducerImp
   @InputFieldDefault("true")
   private Boolean save;
 
+  /**
+   * {@inheritDoc}.
+   */
   @Override
   public void prepare()
   {
     /* do nothing */
   }
 
+  /**
+   * Send the given Adaptris message as an email.
+   *
+   * @param adaptrisMessage The message to send.
+   * @param endpoint        Ignored.
+   * @throws ProduceException If there was a problem sending the email.
+   */
   @Override
   protected void doProduce(AdaptrisMessage adaptrisMessage, String endpoint) throws ProduceException
   {
@@ -94,8 +121,8 @@ public class O365MailProducer extends ProduceOnlyProducerImp
 
     try
     {
-      AzureConnection connection = retrieveConnection(AzureConnection.class);
-      IGraphServiceClient graphClient = GraphServiceClient.builder().authenticationProvider(request -> request.addHeader("Authorization", "Bearer " + connection.getAccessToken())).buildClient();
+      GraphAPIConnection connection = retrieveConnection(GraphAPIConnection.class);
+      IGraphServiceClient graphClient = connection.getClientConnection();
 
       Message outlookMessage = new Message();
       outlookMessage.subject = adaptrisMessage.resolve(subject);
@@ -147,10 +174,11 @@ public class O365MailProducer extends ProduceOnlyProducerImp
             attachment.contentType = "application/octet-stream";
             attachment.contentBytes = Base64.getEncoder().encode(multiPayloadAdaptrisMessage.getPayload(name));
             graphClient.users(user).messages(draftMessage.id).attachments().buildRequest().post(attachment);
-
           }
-/*          else
+          else
           {
+            log.warn("Large attachments not yet supported!");
+            /*
             AttachmentItem attachment = new AttachmentItem();
             attachment.attachmentType = AttachmentType.FILE;
             attachment.name = name;
@@ -164,7 +192,8 @@ public class O365MailProducer extends ProduceOnlyProducerImp
               @Override
               public void success(Object o)
               {
-                graphClient.users(user).messages(draftMessage.id).send().buildRequest().post();
+                // FIXME cannot mark the email ready to send unless all attachments have been uploaded...
+                //graphClient.users(user).messages(draftMessage.id).send().buildRequest().post();
               }
 
               @Override
@@ -176,10 +205,11 @@ public class O365MailProducer extends ProduceOnlyProducerImp
               @Override
               public void progress(long current, long max)
               {
-                // do nothing
+                log.debug("Uploading attachment {} progress is {} / {}", attachment.name, current, max);
               }
             });
-          }*/
+             */
+           }
         }
         graphClient.users(user).messages(draftMessage.id).send().buildRequest().post();
       }
@@ -195,6 +225,9 @@ public class O365MailProducer extends ProduceOnlyProducerImp
     }
   }
 
+  /**
+   * {@inheritDoc}.
+   */
   @Override
   public String endpoint(AdaptrisMessage adaptrisMessage)
   {

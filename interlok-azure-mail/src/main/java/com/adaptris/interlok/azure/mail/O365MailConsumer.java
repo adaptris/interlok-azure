@@ -26,13 +26,12 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisPollingConsumer;
 import com.adaptris.core.MultiPayloadAdaptrisMessage;
 import com.adaptris.core.util.DestinationHelper;
-import com.adaptris.interlok.azure.AzureConnection;
+import com.adaptris.interlok.azure.GraphAPIConnection;
 import com.microsoft.graph.models.extensions.Attachment;
 import com.microsoft.graph.models.extensions.FileAttachment;
 import com.microsoft.graph.models.extensions.IGraphServiceClient;
 import com.microsoft.graph.models.extensions.InternetMessageHeader;
 import com.microsoft.graph.models.extensions.Message;
-import com.microsoft.graph.requests.extensions.GraphServiceClient;
 import com.microsoft.graph.requests.extensions.IAttachmentCollectionPage;
 import com.microsoft.graph.requests.extensions.IAttachmentRequest;
 import com.microsoft.graph.requests.extensions.IMessageCollectionPage;
@@ -41,6 +40,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.mail.BodyPart;
 import javax.mail.internet.MimeMultipart;
@@ -55,19 +55,29 @@ import static java.nio.charset.StandardCharsets.US_ASCII;
  * Implementation of an email consumer that is geared towards Microsoft
  * Office 365, using their Graph API and OAuth2.
  *
- * @config office-365-mail-consumer
+ * @config azure-office-365-mail-consumer
  */
-@XStreamAlias("office-365-mail-consumer")
+@XStreamAlias("azure-office-365-mail-consumer")
 @AdapterComponent
 @ComponentProfile(summary = "Pickup email from a Microsoft Office 365 account using the Microsoft Graph API", tag = "consumer,email,o365,microsoft,office,outlook,365")
 @DisplayOrder(order = { "username", "delete" })
 public class O365MailConsumer extends AdaptrisPollingConsumer
 {
+  static final String DEFAULT_FOLDER = "inbox";
+
+  static final String DEFAULT_FILTER = "isRead eq false";
+
+  /**
+   * The Office 365 username of the mailbox to poll for new messages.
+   */
   @Getter
   @Setter
   @NotBlank
   private String username;
 
+  /**
+   * Whether emails should be deleted after reading, not just marked as read.
+   */
   @Getter
   @Setter
   @AdvancedConfig
@@ -75,12 +85,46 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
   @InputFieldDefault("false")
   private Boolean delete;
 
+  /**
+   * The mailbox folder to poll for new messages.
+   *
+   * The default folder is 'Inbox'.
+   */
+  @Getter
+  @Setter
+  @AdvancedConfig(rare = true)
+  @InputFieldHint(friendly = "The folder to check for emails.")
+  @InputFieldDefault(DEFAULT_FOLDER)
+  private String folder;
+
+  /**
+   * How to filter the messages.
+   *
+   * The default filter is 'isRead eq false'. See https://docs.microsoft.com/en-us/graph/query-parameters#filter-parameter
+   * for further filter parameters.
+   */
+  @Getter
+  @Setter
+  @AdvancedConfig(rare = true)
+  @InputFieldHint(friendly = "How to filter the emails (see https://docs.microsoft.com/en-us/graph/query-parameters#filter-parameter).")
+  @InputFieldDefault(DEFAULT_FILTER)
+  private String filter;
+
+
+  /**
+   * {@inheritDoc}.
+   */
   @Override
   protected void prepareConsumer()
   {
     /* do nothing */
   }
 
+  /**
+   * Poll the given usernames mailbox for new messages.
+   *
+   * @return The number of new emails received.
+   */
   @Override
   protected int processMessages()
   {
@@ -89,11 +133,11 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
     int count = 0;
     try
     {
-      AzureConnection connection = retrieveConnection(AzureConnection.class);
-      IGraphServiceClient graphClient = GraphServiceClient.builder().authenticationProvider(request -> request.addHeader("Authorization", "Bearer " + connection.getAccessToken())).buildClient();
+      GraphAPIConnection connection = retrieveConnection(GraphAPIConnection.class);
+      IGraphServiceClient graphClient = connection.getClientConnection();
 
       // TODO Allow the end user to choose the folder and filter themselves
-      IMessageCollectionPage messages = graphClient.users(username).mailFolders("inbox").messages().buildRequest().filter("isRead eq false").get();
+      IMessageCollectionPage messages = graphClient.users(username).mailFolders(folder()).messages().buildRequest().filter(filter()).get();
 
       // TODO handle multiple pages...
       log.debug("Found {} messages", messages.getCurrentPage().size());
@@ -122,7 +166,7 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
           for (Attachment reference : attachments.getCurrentPage())
           {
             log.debug("Attachment {} is of type {} with size {}", reference.name, reference.oDataType, reference.size);
-            IAttachmentRequest request = graphClient.users(username).messages(id).attachments(reference.id).buildRequest();//new QueryOption("$value", ""));
+            IAttachmentRequest request = graphClient.users(username).messages(id).attachments(reference.id).buildRequest();//new QueryOption("value", ""));
             log.debug("URL: {}", request.getRequestUrl());
             Attachment attachment = request.get();
             if (attachment instanceof FileAttachment)
@@ -184,6 +228,9 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
     return count;
   }
 
+  /**
+   * {@inheritDoc}.
+   */
   @Override
   protected String newThreadName()
   {
@@ -193,6 +240,16 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
   private boolean delete()
   {
     return BooleanUtils.toBooleanDefaultIfNull(delete, false);
+  }
+
+  private String folder()
+  {
+    return StringUtils.defaultString(folder, DEFAULT_FOLDER);
+  }
+
+  private String filter()
+  {
+    return StringUtils.defaultString(filter, DEFAULT_FILTER);
   }
 
   private void addAttachmentToAdaptrisMessage(MultiPayloadAdaptrisMessage message, String name, byte[] attachment)

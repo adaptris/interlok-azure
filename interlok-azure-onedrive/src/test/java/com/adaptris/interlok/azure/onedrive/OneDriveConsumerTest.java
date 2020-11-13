@@ -1,4 +1,4 @@
-package com.adaptris.interlok.azure.mail;
+package com.adaptris.interlok.azure.onedrive;
 
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.FixedIntervalPoller;
@@ -12,24 +12,26 @@ import com.adaptris.interlok.azure.AzureConnection;
 import com.adaptris.interlok.azure.GraphAPIConnection;
 import com.adaptris.interlok.junit.scaffolding.ExampleConsumerCase;
 import com.adaptris.util.TimeInterval;
-import com.microsoft.graph.models.extensions.EmailAddress;
+import com.microsoft.graph.models.extensions.Drive;
+import com.microsoft.graph.models.extensions.DriveItem;
 import com.microsoft.graph.models.extensions.IGraphServiceClient;
-import com.microsoft.graph.models.extensions.ItemBody;
-import com.microsoft.graph.models.extensions.Message;
-import com.microsoft.graph.models.extensions.Recipient;
-import com.microsoft.graph.requests.extensions.IMailFolderRequestBuilder;
-import com.microsoft.graph.requests.extensions.IMessageCollectionPage;
-import com.microsoft.graph.requests.extensions.IMessageCollectionRequest;
-import com.microsoft.graph.requests.extensions.IMessageCollectionRequestBuilder;
-import com.microsoft.graph.requests.extensions.IMessageRequest;
-import com.microsoft.graph.requests.extensions.IMessageRequestBuilder;
+import com.microsoft.graph.requests.extensions.DriveRequest;
+import com.microsoft.graph.requests.extensions.IDriveItemCollectionPage;
+import com.microsoft.graph.requests.extensions.IDriveItemCollectionRequest;
+import com.microsoft.graph.requests.extensions.IDriveItemCollectionRequestBuilder;
+import com.microsoft.graph.requests.extensions.IDriveItemContentStreamRequest;
+import com.microsoft.graph.requests.extensions.IDriveItemContentStreamRequestBuilder;
+import com.microsoft.graph.requests.extensions.IDriveItemRequestBuilder;
+import com.microsoft.graph.requests.extensions.IDriveRequestBuilder;
 import com.microsoft.graph.requests.extensions.IUserRequestBuilder;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.InterruptedIOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -38,19 +40,17 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class O365MailConsumerTest extends ExampleConsumerCase
+public class OneDriveConsumerTest extends ExampleConsumerCase
 {
   private static final String APPLICATION_ID = "47ea49b0-670a-47c1-9303-0b45ffb766ec";
   private static final String TENANT_ID = "cbf4a38d-3117-48cd-b54b-861480ee93cd";
   private static final String CLIENT_SECRET = "NGMyYjY0MTEtOTU0Ny00NTg0LWE3MzQtODg2ZDAzZGVmZmY1Cg==";
   private static final String USERNAME = "user@example.com";
 
-  private static final String SUBJECT = "InterlokMail Office365 Test Message";
-  private static final String MESSAGE = "Bacon ipsum dolor amet tail landjaeger ribeye sausage, prosciutto pork belly strip steak pork loin pork bacon biltong ham hock leberkas boudin chicken. Brisket sirloin ground round, drumstick cupim rump chislic tongue short loin pastrami bresaola pork belly alcatra spare ribs buffalo. Swine chuck frankfurter pancetta. Corned beef spare ribs pork kielbasa, chuck jerky t-bone ground round burgdoggen.";
+  private static final String CONTENT = "A bud light makes love to a Bacardi Silver about the Octoberfest. Now and then, the funny Amarillo Pale Ale seldom makes love to the steam engine of another girl scout. If the Pilsner beyond a burglar ale slurly satiates a shabby girl scout, then the change reads a magazine. A psychotic St. Pauli Girl dies, because the fat satellite brewery drunkenly finds lice on the financial Pilsner. When a Heineken near a Bridgeport ESB leaves, the air hocky table hesitates.";
 
   private static final Poller[] POLLERS =
   {
@@ -59,7 +59,7 @@ public class O365MailConsumerTest extends ExampleConsumerCase
   };
 
   private AzureConnection connection;
-  private O365MailConsumer consumer;
+  private OneDriveConsumer consumer;
 
   private boolean liveTests = false;
 
@@ -69,7 +69,7 @@ public class O365MailConsumerTest extends ExampleConsumerCase
     Properties properties = new Properties();
     try
     {
-      properties.load(new FileInputStream(this.getClass().getResource("o365.properties").getFile()));
+      properties.load(new FileInputStream(this.getClass().getResource("onedrive.properties").getFile()));
       liveTests = true;
     }
     catch (Exception e)
@@ -82,8 +82,7 @@ public class O365MailConsumerTest extends ExampleConsumerCase
     connection.setTenantId(properties.getProperty("TENANT_ID", TENANT_ID));
     connection.setClientSecret(properties.getProperty("CLIENT_SECRET", CLIENT_SECRET));
 
-    consumer = new O365MailConsumer();
-    consumer.registerConnection(connection);
+    consumer = new OneDriveConsumer();
     consumer.setUsername(properties.getProperty("USERNAME", USERNAME));
     consumer.setMessageFactory(new MultiPayloadMessageFactory());
   }
@@ -102,11 +101,11 @@ public class O365MailConsumerTest extends ExampleConsumerCase
       LifecycleHelper.prepare(standaloneConsumer);
       LifecycleHelper.start(standaloneConsumer);
 
-      waitForMessages(mockMessageListener, 5, 5000); // wait until we get five new emails or for 5 seconds
+      waitForMessages(mockMessageListener, 1, 25000);
 
       List<AdaptrisMessage> messages = mockMessageListener.getMessages();
 
-      System.out.println("Found " + messages.size() + " emails");
+      System.out.println("Found " + messages.size() + " files");
       Thread.sleep(5000); // sleep for 5 seconds, otherwise the Graph SDK complains we disconnected while waiting for a response
     }
     catch (InterruptedIOException | InterruptedException e)
@@ -138,41 +137,33 @@ public class O365MailConsumerTest extends ExampleConsumerCase
       when(connection.getClientConnection()).thenReturn(client);
       IUserRequestBuilder userRequestBuilder = mock(IUserRequestBuilder.class);
       when(client.users(USERNAME)).thenReturn(userRequestBuilder);
-      IMailFolderRequestBuilder mailRequestBuilder = mock(IMailFolderRequestBuilder.class);
-      when(userRequestBuilder.mailFolders(O365MailConsumer.DEFAULT_FOLDER)).thenReturn(mailRequestBuilder);
-      IMessageCollectionRequestBuilder messageCollectionRequestBuilder = mock(IMessageCollectionRequestBuilder.class);
-      when(mailRequestBuilder.messages()).thenReturn(messageCollectionRequestBuilder);
-      IMessageCollectionRequest messageCollectionRequest = mock(IMessageCollectionRequest.class);
-      when(messageCollectionRequestBuilder.buildRequest()).thenReturn(messageCollectionRequest);
-      when(messageCollectionRequest.filter(O365MailConsumer.DEFAULT_FILTER)).thenReturn(messageCollectionRequest);
-      IMessageCollectionPage messageResponse = mock(IMessageCollectionPage.class);
-      when(messageCollectionRequest.get()).thenReturn(messageResponse);
-      Message message = new Message();
-      message.id = "7cbd04e3e8be1a706b19377ba82bd6b4";
-      ItemBody body = new ItemBody();
-      body.content = MESSAGE;
-      message.body = body;
-      message.subject = SUBJECT;
-      Recipient recipient = new Recipient();
-      EmailAddress emailAddress = new EmailAddress();
-      emailAddress.address = "recipient@example.com";
-      recipient.emailAddress = emailAddress;
-      message.toRecipients = Arrays.asList(recipient);
-      Recipient sender = new Recipient();
-      emailAddress = new EmailAddress();
-      emailAddress.address = "sender@example.com";
-      sender.emailAddress = emailAddress;
-      message.from = sender;
-      message.ccRecipients = new ArrayList<>();
-      message.hasAttachments = false;
-      when(messageResponse.getCurrentPage()).thenReturn(Arrays.asList(message));
-
-      IMessageRequestBuilder messageRequestBuilder = mock(IMessageRequestBuilder.class);
-      when(userRequestBuilder.messages(anyString())).thenReturn(messageRequestBuilder);
-      IMessageRequest messageRequest = mock(IMessageRequest.class);
-      when(messageRequestBuilder.buildRequest()).thenReturn(messageRequest);
-      when(messageRequest.select(anyString())).thenReturn(messageRequest);
-      when(messageRequest.get()).thenReturn(message);
+      IDriveRequestBuilder driveRequestBuilder = mock(IDriveRequestBuilder.class);
+      when(userRequestBuilder.drive()).thenReturn(driveRequestBuilder);
+      DriveRequest driveRequest = mock(DriveRequest.class);
+      when(driveRequestBuilder.buildRequest()).thenReturn(driveRequest);
+      Drive drive = new Drive();
+      drive.id = "8e7a00f1daf1c2b7015459dd686856c2";
+      when(driveRequest.get()).thenReturn(drive);
+      when(userRequestBuilder.drives(drive.id)).thenReturn(driveRequestBuilder);
+      IDriveItemRequestBuilder driveItemRequestBuilder = mock(IDriveItemRequestBuilder.class);
+      when(driveRequestBuilder.root()).thenReturn(driveItemRequestBuilder);
+      IDriveItemCollectionRequestBuilder childrenRequest = mock(IDriveItemCollectionRequestBuilder.class);
+      when(driveItemRequestBuilder.children()).thenReturn(childrenRequest);
+      IDriveItemCollectionRequest children = mock(IDriveItemCollectionRequest.class);
+      when(childrenRequest.buildRequest()).thenReturn(children);
+      IDriveItemCollectionPage migraine = mock(IDriveItemCollectionPage.class);
+      when(children.get()).thenReturn(migraine);
+      DriveItem fileReference = new DriveItem();
+      fileReference.id = "73271d08680510a91aec95295ed03b90";
+      fileReference.name = "beer";
+      fileReference.size = (long)CONTENT.length();
+      when(migraine.getCurrentPage()).thenReturn(Arrays.asList(fileReference));
+      when(driveRequestBuilder.items(fileReference.id)).thenReturn(driveItemRequestBuilder);
+      IDriveItemContentStreamRequestBuilder streamRequestBuilder = mock(IDriveItemContentStreamRequestBuilder.class);
+      when(driveItemRequestBuilder.content()).thenReturn(streamRequestBuilder);
+      IDriveItemContentStreamRequest streamRequest = mock(IDriveItemContentStreamRequest.class);
+      when(streamRequestBuilder.buildRequest()).thenReturn(streamRequest);
+      when(streamRequest.get()).thenReturn(new ByteArrayInputStream(CONTENT.getBytes(Charset.defaultCharset())));
 
       LifecycleHelper.init(standaloneConsumer);
       LifecycleHelper.prepare(standaloneConsumer);
@@ -183,7 +174,11 @@ public class O365MailConsumerTest extends ExampleConsumerCase
       List<AdaptrisMessage> messages = mockMessageListener.getMessages();
 
       assertEquals(1, messages.size());
-      assertEquals(MESSAGE, messages.get(0).getContent());
+      assertEquals(CONTENT, messages.get(0).getContent());
+    }
+    catch (InterruptedIOException | InterruptedException e)
+    {
+      // Ignore these as they're occasionally thrown by the Graph SDK when the connection is closed while it's still processing
     }
     finally
     {
@@ -200,11 +195,11 @@ public class O365MailConsumerTest extends ExampleConsumerCase
   @Override
   protected List<StandaloneConsumer> retrieveObjectsForSampleConfig()
   {
-    List<StandaloneConsumer> result = new ArrayList<>();
+    List<StandaloneConsumer> result = new ArrayList();
     for (Poller poller : POLLERS)
     {
       StandaloneConsumer standaloneConsumer = (StandaloneConsumer)retrieveObjectForSampleConfig();
-      ((O365MailConsumer)standaloneConsumer.getConsumer()).setPoller(poller);
+      ((OneDriveConsumer)standaloneConsumer.getConsumer()).setPoller(poller);
       result.add(standaloneConsumer);
     }
     return result;

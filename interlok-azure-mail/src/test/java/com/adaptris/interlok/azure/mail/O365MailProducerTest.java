@@ -4,8 +4,14 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.StandaloneProducer;
 import com.adaptris.interlok.azure.AzureConnection;
+import com.adaptris.interlok.azure.GraphAPIConnection;
 import com.adaptris.interlok.junit.scaffolding.ExampleProducerCase;
 import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
+import com.microsoft.graph.models.extensions.IGraphServiceClient;
+import com.microsoft.graph.models.extensions.Message;
+import com.microsoft.graph.requests.extensions.IUserRequestBuilder;
+import com.microsoft.graph.requests.extensions.IUserSendMailRequest;
+import com.microsoft.graph.requests.extensions.IUserSendMailRequestBuilder;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,6 +20,13 @@ import java.io.FileInputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class O365MailProducerTest extends ExampleProducerCase
 {
@@ -28,7 +41,7 @@ public class O365MailProducerTest extends ExampleProducerCase
   private AzureConnection connection;
   private O365MailProducer producer;
 
-  private boolean runTests = false;
+  private boolean liveTests = false;
 
   @Before
   public void setUp()
@@ -37,14 +50,14 @@ public class O365MailProducerTest extends ExampleProducerCase
     try
     {
       properties.load(new FileInputStream(this.getClass().getResource("o365.properties").getFile()));
-      runTests = true;
+      liveTests = true;
     }
     catch (Exception e)
     {
       // do nothing
     }
 
-    connection = new AzureConnection();
+    connection = new GraphAPIConnection();
     connection.setApplicationId(properties.getProperty("APPLICATION_ID", APPLICATION_ID));
     connection.setTenantId(properties.getProperty("TENANT_ID", TENANT_ID));
     connection.setClientSecret(properties.getProperty("CLIENT_SECRET", CLIENT_SECRET));
@@ -58,13 +71,39 @@ public class O365MailProducerTest extends ExampleProducerCase
   }
 
   @Test
-  public void testProducer() throws Exception
+  public void testLiveProducer() throws Exception
   {
-    Assume.assumeTrue(runTests);
+    Assume.assumeTrue(liveTests);
 
     AdaptrisMessage message = AdaptrisMessageFactory.getDefaultInstance().newMessage(MESSAGE);
     StandaloneProducer standaloneProducer = new StandaloneProducer(connection, producer);
     ExampleServiceCase.execute(standaloneProducer, message);
+  }
+
+  @Test
+  public void testMockProducer() throws Exception
+  {
+    Assume.assumeFalse(liveTests);
+
+    connection = mock(GraphAPIConnection.class);
+    producer.registerConnection(connection);
+
+    when(connection.retrieveConnection(any())).thenReturn(connection);
+    IGraphServiceClient client = mock(IGraphServiceClient.class);
+    when(connection.getClientConnection()).thenReturn(client);
+
+    IUserRequestBuilder userRequestBuilder = mock(IUserRequestBuilder.class);
+    when(client.users(USERNAME)).thenReturn(userRequestBuilder);
+    IUserSendMailRequestBuilder sendMailBuilder = mock(IUserSendMailRequestBuilder.class);
+    when(userRequestBuilder.sendMail(any(Message.class), anyBoolean())).thenReturn(sendMailBuilder);
+    IUserSendMailRequest messageRequest = mock(IUserSendMailRequest.class);
+    when(sendMailBuilder.buildRequest()).thenReturn(messageRequest);
+
+    AdaptrisMessage message = AdaptrisMessageFactory.getDefaultInstance().newMessage(MESSAGE);
+    StandaloneProducer standaloneProducer = new StandaloneProducer(connection, producer);
+    ExampleServiceCase.execute(standaloneProducer, message);
+
+    verify(messageRequest, times(1)).post();
   }
 
   @Override
