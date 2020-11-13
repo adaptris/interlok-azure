@@ -100,7 +100,7 @@ public class DataLakeProducerTest extends ExampleProducerCase
     DataLakeDirectoryClient dirClient = mock(DataLakeDirectoryClient.class);
     when(fsClient.getDirectoryClient(PATH)).thenReturn(dirClient);
     DataLakeFileClient fileClient = mock(DataLakeFileClient.class);
-    when(dirClient.createFile(NAME)).thenReturn(fileClient);
+    when(dirClient.createFile(NAME, true)).thenReturn(fileClient);
 
     AdaptrisMessage message = AdaptrisMessageFactory.getDefaultInstance().newMessage(MESSAGE);
     StandaloneProducer standaloneProducer = new StandaloneProducer(connection, producer);

@@ -4,6 +4,7 @@ import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldHint;
+import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.ServiceException;
@@ -35,7 +36,7 @@ public class DataLakeUploadService extends ServiceImp
   @Getter
   @Setter
   @NotNull
-  private DataLakeConnection connection;
+  private AdaptrisConnection connection;
   
   /**
    * The Data Lake file system to access.
