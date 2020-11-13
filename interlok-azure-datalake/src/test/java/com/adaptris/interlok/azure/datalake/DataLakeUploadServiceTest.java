@@ -2,14 +2,28 @@ package com.adaptris.interlok.azure.datalake;
 
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
+import com.adaptris.core.StandaloneProducer;
+import com.adaptris.interlok.azure.AzureConnection;
 import com.adaptris.interlok.azure.DataLakeConnection;
 import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
+import com.azure.storage.file.datalake.DataLakeDirectoryClient;
+import com.azure.storage.file.datalake.DataLakeFileClient;
+import com.azure.storage.file.datalake.DataLakeFileSystemClient;
+import com.azure.storage.file.datalake.DataLakeServiceClient;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.Properties;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class DataLakeUploadServiceTest extends ExampleServiceCase
 {
@@ -23,7 +37,7 @@ public class DataLakeUploadServiceTest extends ExampleServiceCase
 
   private static final String MESSAGE = "Cupcake ipsum dolor sit. Amet gummi bears cake sesame snaps. Gummi bears halvah icing sweet roll cake lollipop pastry cake pastry. Oat cake jelly beans lollipop muffin wafer marzipan. Tart biscuit tiramisu jujubes. Apple pie sweet roll wafer carrot cake cookie sugar plum chocolate bar cupcake. Dessert topping bear claw icing chocolate cake apple pie lemon drops topping. Cake carrot cake sugar plum apple pie chupa chups. Bonbon marzipan jelly beans gingerbread dessert biscuit. Cake apple pie sweet roll. Dessert dessert chocolate bar lemon drops sweet sweet roll dessert dessert marshmallow. Danish toffee brownie apple pie.";
 
-  private DataLakeConnection connection;
+  private AzureConnection connection;
   private DataLakeUploadService service;
 
   private boolean runTests = false;
@@ -63,6 +77,32 @@ public class DataLakeUploadServiceTest extends ExampleServiceCase
 
     AdaptrisMessage message = AdaptrisMessageFactory.getDefaultInstance().newMessage(MESSAGE);
     service.doService(message);
+  }
+
+  @Test
+  public void testMockService() throws Exception
+  {
+    Assume.assumeFalse(runTests);
+
+    connection = mock(DataLakeConnection.class);
+    service.setConnection(connection);
+
+    when(connection.retrieveConnection(any())).thenReturn(connection);
+    DataLakeServiceClient client = mock(DataLakeServiceClient.class);
+    when(connection.getClientConnection()).thenReturn(client);
+
+    DataLakeFileSystemClient fsClient = mock(DataLakeFileSystemClient.class);
+    when(client.getFileSystemClient(FILE_SYSTEM)).thenReturn(fsClient);
+    DataLakeDirectoryClient dirClient = mock(DataLakeDirectoryClient.class);
+    when(fsClient.getDirectoryClient(PATH)).thenReturn(dirClient);
+    DataLakeFileClient fileClient = mock(DataLakeFileClient.class);
+    when(dirClient.createFile(NAME, true)).thenReturn(fileClient);
+
+    AdaptrisMessage message = AdaptrisMessageFactory.getDefaultInstance().newMessage(MESSAGE);
+    service.doService(message);
+
+    verify(fileClient, times(1)).append(any(InputStream.class), anyLong(), anyLong());
+    verify(fileClient, times(1)).flush(MESSAGE.length());
   }
 
   @Override
