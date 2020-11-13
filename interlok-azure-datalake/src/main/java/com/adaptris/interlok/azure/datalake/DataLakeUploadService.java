@@ -8,6 +8,8 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.ServiceException;
 import com.adaptris.core.ServiceImp;
+import com.adaptris.core.StandaloneProducer;
+import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.interlok.azure.DataLakeConnection;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
@@ -89,19 +91,28 @@ public class DataLakeUploadService extends ServiceImp
   @Override
   public void doService(AdaptrisMessage adaptrisMessage) throws ServiceException
   {
+    DataLakeProducer producer = new DataLakeProducer();
+    StandaloneProducer standaloneProducer = new StandaloneProducer(connection, producer);
+
     try
     {
-      DataLakeProducer producer = new DataLakeProducer();
       producer.registerConnection(connection);
       producer.setFileSystem(adaptrisMessage.resolve(fileSystem));
       producer.setPath(adaptrisMessage.resolve(path));
       producer.setFilename(adaptrisMessage.resolve(filename));
-      producer.doProduce(adaptrisMessage, null);
+
+      LifecycleHelper.initAndStart(standaloneProducer, false);
+
+      standaloneProducer.doService(adaptrisMessage);
     }
     catch (Exception e)
     {
       log.error("Could not upload file", e);
       throw new ServiceException(e);
+    }
+    finally
+    {
+      LifecycleHelper.stopAndClose(standaloneProducer, false);
     }
   }
 
