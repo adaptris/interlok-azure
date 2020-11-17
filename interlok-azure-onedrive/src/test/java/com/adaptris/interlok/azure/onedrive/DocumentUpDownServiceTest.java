@@ -2,15 +2,16 @@ package com.adaptris.interlok.azure.onedrive;
 
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
-import com.adaptris.core.ServiceException;
 import com.adaptris.core.ServiceList;
-import com.adaptris.core.StandaloneProducer;
 import com.adaptris.interlok.azure.AzureConnection;
 import com.adaptris.interlok.azure.GraphAPIConnection;
 import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
+import com.adaptris.util.KeyValuePair;
+import com.adaptris.util.KeyValuePairList;
 import com.microsoft.graph.models.extensions.Drive;
 import com.microsoft.graph.models.extensions.DriveItem;
 import com.microsoft.graph.models.extensions.IGraphServiceClient;
+import com.microsoft.graph.options.Option;
 import com.microsoft.graph.requests.extensions.DriveRequest;
 import com.microsoft.graph.requests.extensions.IDriveItemCollectionPage;
 import com.microsoft.graph.requests.extensions.IDriveItemCollectionRequest;
@@ -28,8 +29,6 @@ import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
@@ -49,12 +48,14 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase
     private static final String TENANT_ID = "cbf4a38d-3117-48cd-b54b-861480ee93cd";
     private static final String CLIENT_SECRET = "NGMyYjY0MTEtOTU0Ny00NTg0LWE3MzQtODg2ZDAzZGVmZmY1Cg==";
 
-    private static final String FILENAME = "beer.rtf";
+    private static final String ORIGINAL = "beer.md";
+    private static final String CONVERT = "beer.html";
 
     private AzureConnection connection;
 
     private String username = "user@example.com";
     private String data;
+    private String html;
 
     private boolean liveTests = false;
 
@@ -82,7 +83,9 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase
             username = properties.getProperty("USERNAME");
         }
 
-        data = IOUtils.toString(new FileInputStream(this.getClass().getResource(FILENAME).getFile()), Charset.defaultCharset());
+        data = IOUtils.toString(new FileInputStream(this.getClass().getResource(ORIGINAL).getFile()), Charset.defaultCharset());
+        // The MS Azure markdown to HTML transform doesn't include <html> tags
+        html = IOUtils.toString(new FileInputStream(this.getClass().getResource(CONVERT).getFile()), Charset.defaultCharset());
     }
 
     /**
@@ -110,9 +113,22 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase
 
         assertEquals(data, message.getContent());
 
+        transform.setFormat(DocumentTransformService.Format.PDF);
         transform.doService(message);
-        assertTrue(message.getContent().startsWith("%PDF-1.7"));
-        // TODO check that the text in the downloaded PDF matches the original text...
+        assertTrue(message.getContent().startsWith("%PDF"));
+
+        transform.setFormat(DocumentTransformService.Format.HTML);
+        transform.doService(message);
+        assertEquals(html, message.getContent());
+
+        transform.setFormat(DocumentTransformService.Format.JPG);
+        KeyValuePairList additionalOptions = new KeyValuePairList();
+        additionalOptions.addKeyValuePair(new KeyValuePair("width", "1000"));
+        additionalOptions.addKeyValuePair(new KeyValuePair("height", "1000"));
+        transform.setAdditionalRequestOptions(additionalOptions);
+        transform.doService(message);
+//        assertTrue(message.getContent().startsWith("?"));
+// Sometimes I had JPEG, sometimes PNG data returned; if no exception is thrown, I'd say we're good
     }
 
     @Test
@@ -147,7 +163,7 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase
 
         DriveItem fileReference = new DriveItem();
         fileReference.id = "73271d08680510a91aec95295ed03b90";
-        fileReference.name = FILENAME;
+        fileReference.name = ORIGINAL;
         fileReference.size = (long)data.length();
         when(migraine.getCurrentPage()).thenReturn(Arrays.asList(fileReference));
 
@@ -187,25 +203,25 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase
         when(userRequestBuilder.drives(drive.id)).thenReturn(driveRequestBuilder);
         IDriveItemRequestBuilder driveItemRequestBuilder = mock(IDriveItemRequestBuilder.class);
         when(driveRequestBuilder.root()).thenReturn(driveItemRequestBuilder);
-        when(driveItemRequestBuilder.itemWithPath(FILENAME)).thenReturn(driveItemRequestBuilder);
+        when(driveItemRequestBuilder.itemWithPath(ORIGINAL)).thenReturn(driveItemRequestBuilder);
         IDriveItemRequest driveItemRequest = mock(IDriveItemRequest.class);
         when(driveItemRequestBuilder.buildRequest()).thenReturn(driveItemRequest);
         DriveItem fileReference = new DriveItem();
         fileReference.id = "73271d08680510a91aec95295ed03b90";
-        fileReference.name = FILENAME;
+        fileReference.name = ORIGINAL;
         fileReference.size = (long)data.length();
         when(driveItemRequest.get()).thenReturn(fileReference);
         when(driveRequestBuilder.items(fileReference.id)).thenReturn(driveItemRequestBuilder);
         IDriveItemContentStreamRequestBuilder streamRequestBuilder = mock(IDriveItemContentStreamRequestBuilder.class);
         when(driveItemRequestBuilder.content()).thenReturn(streamRequestBuilder);
         IDriveItemContentStreamRequest streamRequest = mock(IDriveItemContentStreamRequest.class);
-        when(streamRequestBuilder.buildRequest()).thenReturn(streamRequest);
+        when(streamRequestBuilder.buildRequest((List<Option>)null)).thenReturn(streamRequest);
         when(streamRequest.get()).thenReturn(new ByteArrayInputStream(data.getBytes(Charset.defaultCharset())));
 
         AdaptrisMessage message = AdaptrisMessageFactory.getDefaultInstance().newMessage();
         download.doService(message);
         assertEquals(data, message.getContent());
-        assertEquals(FILENAME, message.getMetadataValue("filename"));
+        assertEquals(ORIGINAL, message.getMetadataValue("filename"));
     }
 
     @Test
@@ -233,25 +249,25 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase
         when(userRequestBuilder.drives(drive.id)).thenReturn(driveRequestBuilder);
         IDriveItemRequestBuilder driveItemRequestBuilder = mock(IDriveItemRequestBuilder.class);
         when(driveRequestBuilder.root()).thenReturn(driveItemRequestBuilder);
-        when(driveItemRequestBuilder.itemWithPath(FILENAME)).thenReturn(driveItemRequestBuilder);
+        when(driveItemRequestBuilder.itemWithPath(ORIGINAL)).thenReturn(driveItemRequestBuilder);
         IDriveItemRequest driveItemRequest = mock(IDriveItemRequest.class);
         when(driveItemRequestBuilder.buildRequest()).thenReturn(driveItemRequest);
         DriveItem fileReference = new DriveItem();
         fileReference.id = "73271d08680510a91aec95295ed03b90";
-        fileReference.name = FILENAME;
-        fileReference.size = (long)data.length();
+        fileReference.name = CONVERT;
+        fileReference.size = (long)html.length();
         when(driveItemRequest.get()).thenReturn(fileReference);
         when(driveRequestBuilder.items(fileReference.id)).thenReturn(driveItemRequestBuilder);
         IDriveItemContentStreamRequestBuilder streamRequestBuilder = mock(IDriveItemContentStreamRequestBuilder.class);
         when(driveItemRequestBuilder.content()).thenReturn(streamRequestBuilder);
         IDriveItemContentStreamRequest streamRequest = mock(IDriveItemContentStreamRequest.class);
         when(streamRequestBuilder.buildRequest(any(List.class))).thenReturn(streamRequest);
-        when(streamRequest.get()).thenReturn(new ByteArrayInputStream(data.getBytes(Charset.defaultCharset())));
+        when(streamRequest.get()).thenReturn(new ByteArrayInputStream(html.getBytes(Charset.defaultCharset())));
 
         AdaptrisMessage message = AdaptrisMessageFactory.getDefaultInstance().newMessage();
         transform.doService(message);
-        assertEquals(data, message.getContent());
-        assertEquals(FILENAME, message.getMetadataValue("filename"));
+        assertEquals(html, message.getContent());
+        assertEquals(CONVERT, message.getMetadataValue("filename"));
     }
 
     @Override
@@ -269,7 +285,7 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase
         DocumentUploadService service = new DocumentUploadService();
         service.setConnection(connection);
         service.setUsername(username);
-        service.setFilename(FILENAME);
+        service.setFilename(ORIGINAL);
         return service;
     }
 
@@ -278,7 +294,7 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase
         DocumentDownloadService service = new DocumentDownloadService();
         service.setConnection(connection);
         service.setUsername(username);
-        service.setFilename(FILENAME);
+        service.setFilename(ORIGINAL);
         return service;
     }
 
@@ -287,8 +303,8 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase
         DocumentTransformService service = new DocumentTransformService();
         service.setConnection(connection);
         service.setUsername(username);
-        service.setFilename(FILENAME);
+        service.setFilename(ORIGINAL);
+        service.setFormat(DocumentTransformService.Format.GLB);
         return service;
     }
-
 }

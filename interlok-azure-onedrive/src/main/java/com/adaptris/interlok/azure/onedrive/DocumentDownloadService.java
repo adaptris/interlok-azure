@@ -12,6 +12,7 @@ import com.adaptris.interlok.azure.GraphAPIConnection;
 import com.microsoft.graph.models.extensions.Drive;
 import com.microsoft.graph.models.extensions.DriveItem;
 import com.microsoft.graph.models.extensions.IGraphServiceClient;
+import com.microsoft.graph.options.Option;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,6 +22,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 /**
  * Retrieve the contents of a file from OneDrive.
@@ -60,6 +62,13 @@ public class DocumentDownloadService extends ServiceImp
   private String filename;
 
   /**
+   * Any request options. Used in the transform service to set the
+   * output format. The Azure BaseRequest handles null or an empty
+   * list the same.
+   */
+  protected List<Option> requestOptions;
+
+  /**
    * {@inheritDoc}.
    */
   @Override
@@ -96,7 +105,7 @@ public class DocumentDownloadService extends ServiceImp
       Drive oneDrive = graphClient.users(username).drive().buildRequest().get();
       DriveItem driveItem = graphClient.users(user).drives(oneDrive.id).root().itemWithPath(file).buildRequest().get();
 
-      InputStream remoteStream = graphClient.users(username).drives(oneDrive.id).items(driveItem.id).content().buildRequest().get();
+      InputStream remoteStream = graphClient.users(username).drives(oneDrive.id).items(driveItem.id).content().buildRequest(requestOptions).get();
       OutputStream outputStream = adaptrisMessage.getOutputStream();
       IOUtils.copy(remoteStream, outputStream);
       outputStream.close();
