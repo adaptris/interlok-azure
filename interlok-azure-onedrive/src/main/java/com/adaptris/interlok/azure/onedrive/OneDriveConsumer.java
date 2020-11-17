@@ -34,6 +34,7 @@ import org.apache.commons.io.IOUtils;
 
 import javax.validation.constraints.NotBlank;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 
 /**
@@ -94,7 +95,9 @@ public class OneDriveConsumer extends AdaptrisPollingConsumer
       {
         AdaptrisMessage adaptrisMessage = getMessageFactory().newMessage();
         InputStream remoteStream = graphClient.users(username).drives(oneDrive.id).items(driveItem.id).content().buildRequest().get();
-        IOUtils.copy(remoteStream, adaptrisMessage.getOutputStream());
+        OutputStream outputStream = adaptrisMessage.getOutputStream();
+        IOUtils.copy(remoteStream, outputStream);
+        outputStream.close();
 
         adaptrisMessage.addMetadata("filename", driveItem.name);
 
