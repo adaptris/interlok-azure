@@ -114,9 +114,10 @@ public class DataLakeConsumer extends AdaptrisPollingConsumer
 
         DataLakeFileClient fileClient = directoryClient.getFileClient(name);
 
-        OutputStream os = message.getOutputStream();
-        fileClient.read(os);
-        os.close();
+        try (OutputStream os = message.getOutputStream())
+        {
+          fileClient.read(os);
+        }
 
         retrieveAdaptrisMessageListener().onAdaptrisMessage(message);
       }

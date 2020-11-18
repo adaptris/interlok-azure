@@ -104,10 +104,12 @@ public class DataLakeProducer extends ProduceOnlyProducerImp
 
       DataLakeFileClient fileClient = directoryClient.createFile(f, overwrite());
 
-      InputStream stream = adaptrisMessage.getInputStream();
-      long fileSize = adaptrisMessage.getSize();
-      fileClient.append(stream, 0, fileSize);
-      fileClient.flush(fileSize);
+      try (InputStream stream = adaptrisMessage.getInputStream())
+      {
+        long fileSize = adaptrisMessage.getSize();
+        fileClient.append(stream, 0, fileSize);
+        fileClient.flush(fileSize);
+      }
     }
     catch (Exception e)
     {

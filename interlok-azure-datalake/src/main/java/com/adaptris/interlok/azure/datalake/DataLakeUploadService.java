@@ -26,9 +26,9 @@ import javax.validation.constraints.NotNull;
  */
 @XStreamAlias("azure-data-lake-upload-service")
 @AdapterComponent
-@ComponentProfile(summary = "Put data into a Azure Data Lake", tag = "service,azure,data lake,data,lake")
+@ComponentProfile(summary = "Put data into a Azure Data Lake", tag = "service,azure,data lake,data,lake", recommended = { DataLakeConnection.class })
 @DisplayOrder(order = { "fileSystem", "path", "filename" })
-public class DataLakeUploadService extends ServiceImp
+public class DataLakeUploadService extends ServiceImp implements ConnectedService
 {
   /**
    * A connection to an Azure Data Lake.
@@ -36,6 +36,7 @@ public class DataLakeUploadService extends ServiceImp
   @Getter
   @Setter
   @NotNull
+  @InputFieldHint(ofType = "com.adaptris.interlok.azure.AzureConnection")
   private AdaptrisConnection connection;
   
   /**
@@ -65,24 +66,6 @@ public class DataLakeUploadService extends ServiceImp
   @InputFieldHint(expression = true)
   private String filename;
   
-  /**
-   * {@inheritDoc}.
-   */
-  @Override
-  protected void initService()
-  {
-    /* do nothing */
-  }
-
-  /**
-   * {@inheritDoc}.
-   */
-  @Override
-  protected void closeService()
-  {
-    /* do nothing */
-  }
-
   /**
    * Upload the given message to the Data Lake.
    *
@@ -118,11 +101,53 @@ public class DataLakeUploadService extends ServiceImp
   }
 
   /**
-   * {@inheritDoc}.
+   * Calls LifecycleHelper#prepare for the Azure connection.
+   *
+   * @throws CoreException If teh connection could not be prepared.
    */
   @Override
-  public void prepare()
+  public void prepare() throws CoreException
   {
-    /* do nothing */
+    LifecycleHelper.prepare(connection);
+  }
+
+  /**
+   * Calls LifecycleHelper#init for the Azure connection.
+   */
+  @Override
+  protected void initService() throws CoreException
+  {
+    LifecycleHelper.init(connection);
+  }
+
+  /**
+   * Calls LifecycleHelper#start for the Azure connection.
+   *
+   * @throws CoreException If teh connection could not be prepared.
+   */
+  @Override
+  public void start() throws CoreException
+  {
+    super.start();
+    LifecycleHelper.start(connection);
+  }
+
+  /**
+   * Calls LifecycleHelper#stop for the Azure connection.
+   */
+  @Override
+  public void stop()
+  {
+    super.stop();
+    LifecycleHelper.stop(connection);
+  }
+
+  /**
+   * Calls LifecycleHelper#close for the Azure connection.
+   */
+  @Override
+  protected void closeService()
+  {
+    LifecycleHelper.close(connection);
   }
 }
