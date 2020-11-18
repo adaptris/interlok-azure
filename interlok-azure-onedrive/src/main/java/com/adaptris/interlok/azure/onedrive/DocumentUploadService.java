@@ -14,6 +14,7 @@ import com.adaptris.core.ServiceException;
 import com.adaptris.core.ServiceImp;
 import com.adaptris.core.StandaloneProducer;
 import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.interlok.azure.GraphAPIConnection;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,7 +29,7 @@ import javax.validation.constraints.NotNull;
  */
 @XStreamAlias("azure-one-drive-document-upload-service")
 @AdapterComponent
-@ComponentProfile(summary = "Upload the contents of a message to a file in OneDrive.", tag = "file,o365,microsoft,office,365,one drive,upload")
+@ComponentProfile(summary = "Upload the contents of a message to a file in OneDrive.", tag = "file,o365,microsoft,office,365,one drive,upload", recommended = { GraphAPIConnection.class })
 @DisplayOrder(order = { "connection", "username", "filename" })
 public class DocumentUploadService extends ServiceImp implements ConnectedService
 {
@@ -38,6 +39,7 @@ public class DocumentUploadService extends ServiceImp implements ConnectedServic
     @Getter
     @Setter
     @NotNull
+    @InputFieldHint(ofType = "com.adaptris.interlok.azure.AzureConnection")
     private AdaptrisConnection connection;
 
     /**
