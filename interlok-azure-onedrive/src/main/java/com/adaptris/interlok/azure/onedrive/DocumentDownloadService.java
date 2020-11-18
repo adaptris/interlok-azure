@@ -34,7 +34,7 @@ import java.util.List;
  */
 @XStreamAlias("azure-one-drive-document-download-service")
 @AdapterComponent
-@ComponentProfile(summary = "Retrieve the contents of a file from OneDrive.", tag = "file,o365,microsoft,office,365,one drive,download")
+@ComponentProfile(summary = "Retrieve the contents of a file from OneDrive.", tag = "file,o365,microsoft,office,365,one drive,download", recommended = { GraphAPIConnection.class })
 @DisplayOrder(order = { "connection", "username", "filename" })
 public class DocumentDownloadService extends ServiceImp implements ConnectedService
 {
@@ -44,6 +44,7 @@ public class DocumentDownloadService extends ServiceImp implements ConnectedServ
   @Getter
   @Setter
   @NotNull
+  @InputFieldHint(ofType = "com.adaptris.interlok.azure.AzureConnection")
   private AdaptrisConnection connection;
 
   /**
