@@ -8,6 +8,8 @@ import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.ConnectedService;
+import com.adaptris.core.CoreException;
 import com.adaptris.core.ServiceException;
 import com.adaptris.core.ServiceImp;
 import com.adaptris.core.StandaloneProducer;
@@ -28,7 +30,7 @@ import javax.validation.constraints.NotNull;
 @AdapterComponent
 @ComponentProfile(summary = "Upload the contents of a message to a file in OneDrive.", tag = "file,o365,microsoft,office,365,one drive,upload")
 @DisplayOrder(order = { "connection", "username", "filename" })
-public class DocumentUploadService extends ServiceImp
+public class DocumentUploadService extends ServiceImp implements ConnectedService
 {
     /**
      * Connection to Azure OneDrive.
@@ -64,24 +66,6 @@ public class DocumentUploadService extends ServiceImp
     @AdvancedConfig
     @InputFieldDefault("true")
     private Boolean overwrite;
-
-    /**
-     * {@inheritDoc}.
-     */
-    @Override
-    protected void initService()
-    {
-        /* do nothing */
-    }
-
-    /**
-     * {@inheritDoc}.
-     */
-    @Override
-    protected void closeService()
-    {
-        /* do nothing */
-    }
 
     /**
      * <p>
@@ -120,11 +104,53 @@ public class DocumentUploadService extends ServiceImp
     }
 
     /**
-     * {@inheritDoc}.
+     * Calls LifecycleHelper#prepare for the Azure connection.
+     *
+     * @throws CoreException If teh connection could not be prepared.
      */
     @Override
-    public void prepare()
+    public void prepare() throws CoreException
     {
-        /* do nothing */
+        LifecycleHelper.prepare(connection);
+    }
+
+    /**
+     * Calls LifecycleHelper#init for the Azure connection.
+     */
+    @Override
+    protected void initService() throws CoreException
+    {
+        LifecycleHelper.init(connection);
+    }
+
+    /**
+     * Calls LifecycleHelper#start for the Azure connection.
+     *
+     * @throws CoreException If teh connection could not be prepared.
+     */
+    @Override
+    public void start() throws CoreException
+    {
+        super.start();
+        LifecycleHelper.start(connection);
+    }
+
+    /**
+     * Calls LifecycleHelper#stop for the Azure connection.
+     */
+    @Override
+    public void stop()
+    {
+        super.stop();
+        LifecycleHelper.stop(connection);
+    }
+
+    /**
+     * Calls LifecycleHelper#close for the Azure connection.
+     */
+    @Override
+    protected void closeService()
+    {
+        LifecycleHelper.close(connection);
     }
 }

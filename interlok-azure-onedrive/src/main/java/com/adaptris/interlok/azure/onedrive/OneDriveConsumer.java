@@ -94,10 +94,13 @@ public class OneDriveConsumer extends AdaptrisPollingConsumer
       for (DriveItem driveItem : currentPage)
       {
         AdaptrisMessage adaptrisMessage = getMessageFactory().newMessage();
-        InputStream remoteStream = graphClient.users(username).drives(oneDrive.id).items(driveItem.id).content().buildRequest().get();
-        OutputStream outputStream = adaptrisMessage.getOutputStream();
-        IOUtils.copy(remoteStream, outputStream);
-        outputStream.close();
+        try (InputStream remoteStream = graphClient.users(username).drives(oneDrive.id).items(driveItem.id).content().buildRequest().get())
+        {
+          try (OutputStream outputStream = adaptrisMessage.getOutputStream())
+          {
+            IOUtils.copy(remoteStream, outputStream);
+          }
+        }
 
         adaptrisMessage.addMetadata("filename", driveItem.name);
 

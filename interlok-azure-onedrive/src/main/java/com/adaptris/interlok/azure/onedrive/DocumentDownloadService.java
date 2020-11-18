@@ -6,8 +6,11 @@ import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.ConnectedService;
+import com.adaptris.core.CoreException;
 import com.adaptris.core.ServiceException;
 import com.adaptris.core.ServiceImp;
+import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.interlok.azure.GraphAPIConnection;
 import com.microsoft.graph.models.extensions.Drive;
 import com.microsoft.graph.models.extensions.DriveItem;
@@ -33,7 +36,7 @@ import java.util.List;
 @AdapterComponent
 @ComponentProfile(summary = "Retrieve the contents of a file from OneDrive.", tag = "file,o365,microsoft,office,365,one drive,download")
 @DisplayOrder(order = { "connection", "username", "filename" })
-public class DocumentDownloadService extends ServiceImp
+public class DocumentDownloadService extends ServiceImp implements ConnectedService
 {
   /**
    * Connection to Azure OneDrive.
@@ -69,24 +72,6 @@ public class DocumentDownloadService extends ServiceImp
   protected List<Option> requestOptions;
 
   /**
-   * {@inheritDoc}.
-   */
-  @Override
-  protected void initService()
-  {
-    /* do nothing */
-  }
-
-  /**
-   * {@inheritDoc}.
-   */
-  @Override
-  protected void closeService()
-  {
-    /* do nothing */
-  }
-
-  /**
    * Retrieve the contents of a file from OneDrive.
    *
    * @param adaptrisMessage the <code>AdaptrisMessage</code> to process
@@ -105,10 +90,13 @@ public class DocumentDownloadService extends ServiceImp
       Drive oneDrive = graphClient.users(username).drive().buildRequest().get();
       DriveItem driveItem = graphClient.users(user).drives(oneDrive.id).root().itemWithPath(file).buildRequest().get();
 
-      InputStream remoteStream = graphClient.users(username).drives(oneDrive.id).items(driveItem.id).content().buildRequest(requestOptions).get();
-      OutputStream outputStream = adaptrisMessage.getOutputStream();
-      IOUtils.copy(remoteStream, outputStream);
-      outputStream.close();
+      try (InputStream remoteStream = graphClient.users(username).drives(oneDrive.id).items(driveItem.id).content().buildRequest(requestOptions).get())
+      {
+        try (OutputStream outputStream = adaptrisMessage.getOutputStream())
+        {
+          IOUtils.copy(remoteStream, outputStream);
+        }
+      }
 
       adaptrisMessage.addMetadata("filename", driveItem.name);
     }
@@ -120,11 +108,53 @@ public class DocumentDownloadService extends ServiceImp
   }
 
   /**
-   * {@inheritDoc}.
+   * Calls LifecycleHelper#prepare for the Azure connection.
+   *
+   * @throws CoreException If teh connection could not be prepared.
    */
   @Override
-  public void prepare()
+  public void prepare() throws CoreException
   {
-    /* do nothing */
+    LifecycleHelper.prepare(connection);
+  }
+
+  /**
+   * Calls LifecycleHelper#init for the Azure connection.
+   */
+  @Override
+  protected void initService() throws CoreException
+  {
+    LifecycleHelper.init(connection);
+  }
+
+  /**
+   * Calls LifecycleHelper#start for the Azure connection.
+   *
+   * @throws CoreException If teh connection could not be prepared.
+   */
+  @Override
+  public void start() throws CoreException
+  {
+    super.start();
+    LifecycleHelper.start(connection);
+  }
+
+  /**
+   * Calls LifecycleHelper#stop for the Azure connection.
+   */
+  @Override
+  public void stop()
+  {
+    super.stop();
+    LifecycleHelper.stop(connection);
+  }
+
+  /**
+   * Calls LifecycleHelper#close for the Azure connection.
+   */
+  @Override
+  protected void closeService()
+  {
+    LifecycleHelper.close(connection);
   }
 }
