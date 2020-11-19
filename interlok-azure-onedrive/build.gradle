@@ -5,9 +5,6 @@ ext {
 
 dependencies {
   compile project(':interlok-azure-core')
-  compile ("commons-codec:commons-codec:1.15")
-  compile ("com.fasterxml.jackson.core:jackson-databind:2.11.3")
-  compile ("com.fasterxml.jackson.core:jackson-core:2.11.3")
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
