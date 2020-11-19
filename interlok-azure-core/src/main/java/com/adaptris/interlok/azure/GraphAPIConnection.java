@@ -76,4 +76,3 @@ public class GraphAPIConnection extends AzureConnection<IGraphServiceClient>
   }
 
 }
-

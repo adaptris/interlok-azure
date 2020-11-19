@@ -127,4 +127,3 @@ public class OneDriveConsumer extends AdaptrisPollingConsumer
     return DestinationHelper.threadName(retrieveAdaptrisMessageListener(), null);
   }
 }
-

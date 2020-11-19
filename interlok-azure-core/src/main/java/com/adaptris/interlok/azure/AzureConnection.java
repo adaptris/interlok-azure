@@ -60,9 +60,6 @@ public abstract class AzureConnection<C> extends AdaptrisConnectionImp
   /**
    * {@inheritDoc}.
    */
-  /**
-   * Stop the underlying connection.
-   */
   @Override
   protected void stopConnection()
   {

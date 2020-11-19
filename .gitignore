@@ -17,6 +17,7 @@ unit-tests.properties
 unit-tests.properties.resolved
 
 o365.properties
+datalake.properties
 onedrive.properties
 
 # Project artefacts from building.
