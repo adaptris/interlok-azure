@@ -25,9 +25,6 @@ ext {
   slf4jVersion = '1.7.30'
   mockitoVersion = '3.6.0'
 
-  msAzureVersion = "1.8.0"
-  msGraphVersion = "2.3.2"
-  jacksonVersion = "2.11.3"
 }
 
 if (JavaVersion.current().isJava8Compatible()) {
@@ -140,8 +137,6 @@ subprojects {
     compile ("com.adaptris:interlok-core:$interlokCoreVersion") { changing= true}
     compile ("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
     compile ("org.slf4j:slf4j-api:$slf4jVersion")
-
-    compile ("commons-codec:commons-codec:1.15")
 
     annotationProcessor ("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
 
