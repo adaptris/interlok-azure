@@ -1,14 +1,16 @@
 package com.adaptris.interlok.azure.cosmosdb;
 
-import static com.adaptris.core.ServiceCase.execute;
-import static org.junit.Assert.assertTrue;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import org.junit.Test;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.ServiceException;
+import org.junit.Test;
+
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
+import static com.adaptris.core.ServiceCase.execute;
+import static org.junit.Assert.assertTrue;
 
 public class CosmosAuthorizationHeaderTest {
 

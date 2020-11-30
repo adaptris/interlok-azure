@@ -1,14 +1,5 @@
 package com.adaptris.interlok.azure.cosmosdb;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
-import javax.validation.constraints.NotBlank;
-import org.apache.commons.lang3.StringUtils;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
@@ -27,6 +18,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.validation.constraints.NotBlank;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Builds an authorization header for Azure CosmosDB from an explicit ResourceID / ResourceType

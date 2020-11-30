@@ -1,0 +1,97 @@
+ext {
+  componentName='Interlok Azure'
+  delombokTargetDir = new File("${project.projectDir}/src/main/generated")
+  jacksonVersion = "2.11.3"
+}
+
+dependencies {
+
+  compile ("com.microsoft.azure:msal4j:1.8.0")
+  compile ("com.microsoft.graph:microsoft-graph:2.3.2")
+  compile ("com.azure:azure-identity:1.1.3") {
+    // Exclude KeePassJava2 dependencies, because we don't care
+    // If people want it, then can include it themselves.
+    exclude group: "org.linguafranca.pwdb", module: "KeePassJava2"
+    exclude group: "org.simpleframework", module: "simple-xml"
+  }
+  compile ("com.azure:azure-storage-file-datalake:12.2.0")
+  compile ("org.codehaus.staxmate:stax2:2.1")
+  compile ("com.google.guava:guava:30.0-jre")
+  compile ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
+  compile ("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
+  compile ("commons-codec:commons-codec:1.15")
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+task examplesJar(type: Jar, dependsOn: test) {
+    classifier = 'examples'
+    from new File(buildDir, '/examples')
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.extensions.delombokTask
+}
+
+
+jar {
+  manifest {
+    attributes("Built-By": System.getProperty('user.name'),
+              "Build-Jdk": System.getProperty('java.version'),
+              "Implementation-Title": componentName,
+              "Implementation-Version": project.version,
+              "Implementation-Vendor-Id": project.group,
+              "Implementation-Vendor": organizationName)
+  }
+}
+
+artifacts {
+    archives javadocJar
+    archives examplesJar
+    archives sourcesJar
+}
+
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      from components.java
+
+      artifact javadocJar { classifier "javadoc" }
+      artifact examplesJar { classifier "examples" }
+      artifact sourcesJar { classifier "sources" }
+      pom.withXml {
+        asNode().appendNode("name", componentName)
+        asNode().appendNode("description", "Components that interact Outlook/Exchange in Office365 ")
+        def properties = asNode().appendNode("properties")
+        properties.appendNode("target", "3.11.1+")
+        properties.appendNode("tags", "azure,office365,outlook,exchange")
+        properties.appendNode("license", "false")
+      }
+    }
+  }
+  repositories {
+    maven {
+      credentials {
+        username repoUsername
+        password repoPassword
+      }
+      url mavenPublishUrl
+    }
+  }
+}
+
+delombok {
+  target = delombokTargetDir
+}
+
+task deleteGeneratedFiles(type: Delete) {
+  delete delombokTargetDir
+}
+
+processTestResources.dependsOn copyUnitTestProperties
+javadoc.dependsOn offlinePackageList
+clean.dependsOn deleteGeneratedFiles

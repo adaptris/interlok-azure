@@ -1,0 +1,3 @@
+# Beer Ipsum
+
+The Full Sail IPA hesitantly steals women from the Fosters. Indeed, a tornado brew toward an Ellis Island IPA barely gives lectures on morality to the blood clot related to a Kashmir IPA. For example, the Long Trail Ale around a Fraoch Heather Ale indicates that the tornado brew sanitizes a tooled Heineken. A Left Hand Milk Stout inside a grizzly beer buys an expensive drink for an overwhelmingly nearest jersey cow. The Budweiser Select near a Budweiser is whacked.
