@@ -2,6 +2,7 @@ ext {
   componentName='Interlok Azure'
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
   jacksonVersion = "2.12.0"
+  nettyVersion='4.1.54.Final'
 }
 
 dependencies {
@@ -13,8 +14,22 @@ dependencies {
     // If people want it, then can include it themselves.
     exclude group: "org.linguafranca.pwdb", module: "KeePassJava2"
     exclude group: "org.simpleframework", module: "simple-xml"
+    exclude group: "io.netty"
   }
-  compile ("com.azure:azure-storage-file-datalake:12.3.0")
+  compile ("com.azure:azure-storage-file-datalake:12.3.0") {
+    exclude group: "io.netty"
+  }
+
+  implementation ("io.netty:netty-buffer:$nettyVersion")
+  implementation ("io.netty:netty-common:$nettyVersion")
+  implementation ("io.netty:netty-handler:$nettyVersion")
+  implementation ("io.netty:netty-transport:$nettyVersion")
+  implementation ("io.netty:netty-transport-native-epoll:$nettyVersion")
+  implementation ("io.netty:netty-transport-native-unix-common:$nettyVersion")
+  implementation ("io.netty:netty-transport-native-kqueue:$nettyVersion")
+  implementation ("io.netty:netty-codec:$nettyVersion")
+  implementation ("io.netty:netty-codec-http:$nettyVersion")
+
   compile ("org.codehaus.staxmate:stax2:2.1")
   compile ("com.google.guava:guava:30.0-jre")
   compile ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
