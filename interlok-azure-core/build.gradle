@@ -14,7 +14,7 @@ dependencies {
     exclude group: "org.linguafranca.pwdb", module: "KeePassJava2"
     exclude group: "org.simpleframework", module: "simple-xml"
   }
-  compile ("com.azure:azure-storage-file-datalake:12.2.0")
+  compile ("com.azure:azure-storage-file-datalake:12.3.0")
   compile ("org.codehaus.staxmate:stax2:2.1")
   compile ("com.google.guava:guava:30.0-jre")
   compile ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
