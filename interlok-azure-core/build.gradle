@@ -20,20 +20,25 @@ dependencies {
     exclude group: "io.netty"
   }
 
-  implementation ("io.netty:netty-buffer:$nettyVersion")
-  implementation ("io.netty:netty-common:$nettyVersion")
   implementation ("io.netty:netty-handler:$nettyVersion")
-  implementation ("io.netty:netty-transport:$nettyVersion")
+  implementation ("io.netty:netty-handler-proxy:$nettyVersion")
   implementation ("io.netty:netty-transport-native-epoll:$nettyVersion")
   implementation ("io.netty:netty-transport-native-unix-common:$nettyVersion")
   implementation ("io.netty:netty-transport-native-kqueue:$nettyVersion")
   implementation ("io.netty:netty-codec:$nettyVersion")
+  implementation ("io.netty:netty-codec-http2:$nettyVersion")
   implementation ("io.netty:netty-codec-http:$nettyVersion")
 
   compile ("org.codehaus.staxmate:stax2:2.1")
   compile ("com.google.guava:guava:30.0-jre")
+  // azure-core via azure-identity has an explicit dependency on these jars,
+  // so we need to pin the right version
+  compile ("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
+  compile ("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion")
+  // should be pulled in by the jackson-datatype/dataformat deps.
   compile ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
   compile ("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
+
   compile ("commons-codec:commons-codec:1.15")
 }
 

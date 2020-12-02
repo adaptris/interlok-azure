@@ -95,6 +95,7 @@ subprojects {
   apply plugin: "io.freefair.lombok"
   apply plugin: 'com.github.spotbugs'
   apply plugin: 'org.owasp.dependencycheck'
+  apply plugin: 'project-report'
 
   sourceCompatibility = 1.8
   group   = 'com.adaptris'
