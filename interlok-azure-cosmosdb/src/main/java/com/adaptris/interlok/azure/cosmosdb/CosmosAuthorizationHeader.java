@@ -80,6 +80,8 @@ public class CosmosAuthorizationHeader extends CosmosAuthorizationHeaderImpl {
    */
   public static final String DEFAULT_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss z";
 
+  public static final String DEFAULT_TIMEZONE = "GMT";
+
   /**
    * The ResourceType portion of the string identifies the type of resource that the request is for, Eg. "dbs", "colls", "docs".
    * 
@@ -166,7 +168,7 @@ public class CosmosAuthorizationHeader extends CosmosAuthorizationHeaderImpl {
   }
 
   private String timezone() {
-    return StringUtils.defaultIfBlank(getTimezone(), "GMT");
+    return StringUtils.defaultIfBlank(getTimezone(), DEFAULT_TIMEZONE);
   }
 
   private String dateFormat() {

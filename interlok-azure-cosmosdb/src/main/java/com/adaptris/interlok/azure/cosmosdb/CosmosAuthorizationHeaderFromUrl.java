@@ -8,16 +8,34 @@ import com.adaptris.core.CoreException;
 import com.adaptris.core.ServiceException;
 import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.interlok.resolver.ExternalResolver;
 import com.adaptris.interlok.util.Args;
+import com.adaptris.security.exc.PasswordException;
+import com.adaptris.security.password.Password;
 import com.adaptris.validation.constraints.UrlExpression;
+import com.microsoft.azure.documentdb.internal.BaseAuthorizationTokenProvider;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
+import org.apache.http.HttpException;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpRequestInterceptor;
+import org.apache.http.protocol.HttpContext;
 
 import javax.validation.constraints.NotBlank;
+import java.io.IOException;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.adaptris.interlok.azure.cosmosdb.CosmosAuthorizationHeader.DEFAULT_DATE_FORMAT;
 
 /**
  * Builds an authorization header for Azure CosmosDB from a URL.
@@ -70,7 +88,8 @@ import java.net.URL;
 @XStreamAlias("cosmosdb-authorization-header-from-url")
 @ComponentProfile(summary = "Builds an authorization header for Azure CosmosDB", since = "3.9.2", tag = "azure,cosmosdb,cosmos")
 @DisplayOrder(order = {"masterKey", "httpVerb", "cosmosEndpoint", "targetKey"})
-public class CosmosAuthorizationHeaderFromUrl extends CosmosAuthorizationHeaderImpl {
+public class CosmosAuthorizationHeaderFromUrl extends CosmosAuthorizationHeaderImpl implements HttpRequestInterceptor
+{
 
   /**
    * The Cosmos URL Endpoint that you will be hitting with your REST request.
@@ -120,4 +139,27 @@ public class CosmosAuthorizationHeaderFromUrl extends CosmosAuthorizationHeaderI
     return this;
   }
 
+  @Override
+  public void process(HttpRequest request, HttpContext context) throws HttpException, IOException {
+    try {
+
+      String now = DateTimeFormatter.ofPattern(DEFAULT_DATE_FORMAT).format(ZonedDateTime.now(ZoneId.of(CosmosAuthorizationHeader.DEFAULT_TIMEZONE)));
+
+      URL url = new URL(getCosmosEndpointUrl());
+      String resourceId = ResourceTypeHelper.getResourceID(url);
+      String resourceType = ResourceTypeHelper.getResourceType(url);
+
+      Map<String, String> headers = new HashMap<>();
+      headers.put(X_MS_DATE, now);
+      String masterKey = Password.decode(ExternalResolver.resolve(getMasterKey()));
+      BaseAuthorizationTokenProvider provider = new BaseAuthorizationTokenProvider(masterKey, null);
+      String header = provider.generateKeyAuthorizationSignature(getHttpVerb(), resourceId, resourceType, headers);
+
+      request.addHeader(targetKey(), URLEncoder.encode(header, StandardCharsets.UTF_8.name()));
+      request.addHeader(X_MS_DATE, now);
+
+    } catch (PasswordException e) {
+      log.error("Could not decode password", e);
+    }
+  }
 }

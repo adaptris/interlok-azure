@@ -13,6 +13,8 @@ dependencies {
   compile ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
   compile ("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
   compile ("commons-codec:commons-codec:1.15")
+
+  compile ("com.adaptris:interlok-apache-http:$interlokCoreVersion")
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
