@@ -13,10 +13,8 @@ public class CosmosAuthorizationInterceptorTest {
   public void testInterceptor() throws Exception {
 
     CosmosAuthorizationInterceptor builder = new CosmosAuthorizationInterceptor();
-    builder.setHttpVerb("GET");
     builder.setTargetKey("target");
     builder.setMasterKey("master");
-    builder.setCosmosEndpoint("https://www.example.com");
 
     HttpRequestInterceptor interceptor = builder.build();
 
