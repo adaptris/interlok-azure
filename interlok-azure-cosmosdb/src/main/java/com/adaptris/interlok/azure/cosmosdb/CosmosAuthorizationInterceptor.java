@@ -42,16 +42,6 @@ import static com.adaptris.interlok.azure.cosmosdb.CosmosAuthorizationHeader.X_M
 public class CosmosAuthorizationInterceptor implements HttpRequestInterceptor, RequestInterceptorBuilder {
 
   /**
-   * The metadata key that will hold the Authorization output.
-   *
-   */
-  @Getter
-  @Setter
-  @InputFieldDefault(value = DEFAULT_METADATA_KEY)
-  @AdvancedConfig
-  private String targetKey;
-
-  /**
    * Your master key token.
    *
    */
@@ -83,15 +73,11 @@ public class CosmosAuthorizationInterceptor implements HttpRequestInterceptor, R
       BaseAuthorizationTokenProvider provider = new BaseAuthorizationTokenProvider(masterKey, null);
       String header = provider.generateKeyAuthorizationSignature(request.getRequestLine().getMethod(), resourceId, resourceType, headers);
 
-      request.addHeader(targetKey(), URLEncoder.encode(header, StandardCharsets.UTF_8.name()));
+      request.addHeader(DEFAULT_METADATA_KEY, URLEncoder.encode(header, StandardCharsets.UTF_8.name()));
       request.addHeader(X_MS_DATE, now);
 
     } catch (Exception e) {
       throw new HttpException("Could not process HTTP intercept as expected!", e);
     }
-  }
-
-  private String targetKey() {
-    return StringUtils.defaultIfEmpty(getTargetKey(), DEFAULT_METADATA_KEY);
   }
 }
