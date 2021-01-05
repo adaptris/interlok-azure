@@ -13,7 +13,6 @@ public class CosmosAuthorizationInterceptorTest {
   public void testInterceptor() throws Exception {
 
     CosmosAuthorizationInterceptor builder = new CosmosAuthorizationInterceptor();
-    builder.setTargetKey("target");
     builder.setMasterKey("master");
 
     HttpRequestInterceptor interceptor = builder.build();
@@ -21,7 +20,5 @@ public class CosmosAuthorizationInterceptorTest {
     HttpRequest request = new BasicHttpRequest("GET", "https://www.example.com/");
 
     interceptor.process(request, null);
-
-    assertTrue(request.containsHeader("target"));
   }
 }
