@@ -30,7 +30,7 @@ dependencies {
   implementation ("io.netty:netty-codec-http:$nettyVersion")
 
   compile ("org.codehaus.staxmate:stax2:2.1")
-  compile ("com.google.guava:guava:30.0-jre")
+  compile ("com.google.guava:guava:30.1-jre")
   // azure-core via azure-identity has an explicit dependency on these jars,
   // so we need to pin the right version
   compile ("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
