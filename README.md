@@ -47,7 +47,7 @@ List of library (JAR) dependencies:
 * SquareUp OKIO
 * Google GSON
 
-## Mail Setup
+## Email
 
 Users require an Exchange mailbox to send/receive email, and this
 requires an Office365 subscription. The application ID, tenant ID,
@@ -68,13 +68,17 @@ Necessary Azure application permissions:
 1. Ensure there is a user with an Exchange mailbox
 ![Users Setup](docs/o365-4.png)
 
-## OneDrive Setup
+## OneDrive
 
 * Files.Read.All
 * Files.ReadWrite.All
 * User.Read
 * User.Read.All
 
-Many of the prerequisites are the same as for EMail: the application ID,
+Many of the prerequisites are the same as for Email: the application ID,
 tenant ID, client secret and username are all required by Interlok and
 should match those given in the Azure portal.
+
+In addition to a consumer and producer, there are also services for
+uploading/downloading documents, if it's necessary during the middle of
+a workflow.
