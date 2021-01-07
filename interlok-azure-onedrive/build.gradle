@@ -50,10 +50,10 @@ publishing {
       artifact sourcesJar { classifier "sources" }
       pom.withXml {
         asNode().appendNode("name", componentName)
-        asNode().appendNode("description", "Components that interact Outlook/Exchange in Office365 ")
+        asNode().appendNode("description", "Components that interact Onedrive")
         def properties = asNode().appendNode("properties")
-        properties.appendNode("target", "3.9.2+")
-        properties.appendNode("tags", "azure,office365,outlook,exchange")
+        properties.appendNode("target", "3.11.1+")
+        properties.appendNode("tags", "azure,office365,onedrive")
         properties.appendNode("license", "false")
         properties.appendNode("readme", "https://github.com/adaptris/interlok-azure/raw/develop/README.md")
         properties.appendNode("repository", "https://github.com/adaptris/interlok-azure")
