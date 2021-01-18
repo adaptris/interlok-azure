@@ -16,7 +16,7 @@ dependencies {
     exclude group: "org.simpleframework", module: "simple-xml"
     exclude group: "io.netty"
   }
-  compile ("com.azure:azure-storage-file-datalake:12.3.0") {
+  compile ("com.azure:azure-storage-file-datalake:12.4.0") {
     exclude group: "io.netty"
   }
 
