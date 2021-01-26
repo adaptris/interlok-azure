@@ -84,7 +84,6 @@ public class CosmosAuthorizationHeaderFromUrl extends CosmosAuthorizationHeaderI
   @UrlExpression
   private String cosmosEndpointUrl;
 
-
   @Override
   public void prepare() throws CoreException {
     super.prepare();
@@ -114,10 +113,9 @@ public class CosmosAuthorizationHeaderFromUrl extends CosmosAuthorizationHeaderI
     }
   }
 
-
   public CosmosAuthorizationHeaderFromUrl withCosmosEndpointUrl(String s) {
     setCosmosEndpointUrl(s);
     return this;
   }
-
 }
+
