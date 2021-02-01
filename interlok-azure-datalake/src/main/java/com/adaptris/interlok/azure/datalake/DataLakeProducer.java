@@ -21,6 +21,8 @@ import org.apache.commons.lang3.BooleanUtils;
 
 import javax.validation.constraints.NotBlank;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Implementation of a file producer that can upload files to Microsoft
@@ -100,6 +102,14 @@ public class DataLakeProducer extends ProduceOnlyProducerImp
       DataLakeConnection connection = retrieveConnection(DataLakeConnection.class);
       DataLakeServiceClient dataLakeServiceClient = connection.getClientConnection();
       DataLakeFileSystemClient fileSystemClient = dataLakeServiceClient.getFileSystemClient(d);
+      String hierarchy = "";
+      for (String dir : p.split("/")) {
+        hierarchy += dir;
+        if (!fileSystemClient.getDirectoryClient(hierarchy).exists()) {
+          fileSystemClient.createDirectory(hierarchy);
+        }
+        hierarchy += "/";
+      }
       DataLakeDirectoryClient directoryClient = fileSystemClient.getDirectoryClient(p);
 
       DataLakeFileClient fileClient = directoryClient.createFile(f, overwrite());

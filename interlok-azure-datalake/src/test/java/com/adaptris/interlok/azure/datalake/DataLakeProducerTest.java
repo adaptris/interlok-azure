@@ -23,6 +23,7 @@ import java.util.Properties;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -98,7 +99,8 @@ public class DataLakeProducerTest extends ExampleProducerCase
     DataLakeFileSystemClient fsClient = mock(DataLakeFileSystemClient.class);
     when(client.getFileSystemClient(FILE_SYSTEM)).thenReturn(fsClient);
     DataLakeDirectoryClient dirClient = mock(DataLakeDirectoryClient.class);
-    when(fsClient.getDirectoryClient(PATH)).thenReturn(dirClient);
+    when(fsClient.getDirectoryClient(anyString())).thenReturn(dirClient);
+    when(dirClient.exists()).thenReturn(true);
     DataLakeFileClient fileClient = mock(DataLakeFileClient.class);
     when(dirClient.createFile(NAME, true)).thenReturn(fileClient);
 
