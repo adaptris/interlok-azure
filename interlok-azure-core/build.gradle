@@ -2,7 +2,7 @@ ext {
   componentName='Interlok Azure'
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
   jacksonVersion = "2.12.1"
-  nettyVersion='4.1.56.Final'
+  nettyVersion='4.1.58.Final'
 }
 
 dependencies {
