@@ -1,8 +1,10 @@
 package com.adaptris.interlok.azure.datalake;
 
 import com.adaptris.annotation.AdapterComponent;
+import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
+import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.AdaptrisMessage;
@@ -66,7 +68,16 @@ public class DataLakeUploadService extends ServiceImp implements ConnectedServic
   @NotBlank
   @InputFieldHint(expression = true)
   private String filename;
-  
+
+  /**
+   * Whether to overwrite existing files. Defaults to true.
+   */
+  @Getter
+  @Setter
+  @AdvancedConfig
+  @InputFieldDefault("true")
+  private Boolean overwrite;
+
   /**
    * Upload the given message to the Data Lake.
    *
@@ -85,6 +96,7 @@ public class DataLakeUploadService extends ServiceImp implements ConnectedServic
       producer.setFileSystem(adaptrisMessage.resolve(fileSystem));
       producer.setPath(adaptrisMessage.resolve(path));
       producer.setFilename(adaptrisMessage.resolve(filename));
+      producer.setOverwrite(overwrite);
 
       LifecycleHelper.initAndStart(standaloneProducer, false);
 
