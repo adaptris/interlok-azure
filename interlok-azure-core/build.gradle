@@ -8,7 +8,7 @@ ext {
 dependencies {
 
   compile ("com.microsoft.azure:msal4j:1.8.1")
-  compile ("com.microsoft.graph:microsoft-graph:2.5.0")
+  compile ("com.microsoft.graph:microsoft-graph:2.7.1")
   compile ("com.azure:azure-identity:1.2.1") {
     // Exclude KeePassJava2 dependencies, because we don't care
     // If people want it, then can include it themselves.
