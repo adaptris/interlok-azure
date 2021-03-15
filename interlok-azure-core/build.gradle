@@ -10,7 +10,7 @@ dependencies {
 
   compile ("com.microsoft.azure:msal4j:1.8.1")
   compile ("com.microsoft.graph:microsoft-graph:2.5.0")
-  compile ("com.azure:azure-identity:1.2.1") {
+  compile ("com.azure:azure-identity:1.2.4") {
     // Exclude KeePassJava2 dependencies, because we don't care
     // If people want it, then can include it themselves.
     exclude group: "org.linguafranca.pwdb", module: "KeePassJava2"
