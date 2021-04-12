@@ -1,5 +1,6 @@
 ext {
   componentName='Interlok Azure/Outlook'
+  componentDesc="Send/Receive emails via Office 365/Exchange"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
 }
 
@@ -50,7 +51,7 @@ publishing {
       artifact sourcesJar { classifier "sources" }
       pom.withXml {
         asNode().appendNode("name", componentName)
-        asNode().appendNode("description", "Components that interact Outlook/Exchange in Office365 ")
+        asNode().appendNode("description", componentDesc)
         def properties = asNode().appendNode("properties")
         properties.appendNode("target", "3.11.1+")
         properties.appendNode("tags", "azure,office365,outlook,exchange")
