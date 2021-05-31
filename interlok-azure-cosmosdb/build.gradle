@@ -7,7 +7,7 @@ ext {
 }
 
 dependencies {
-  compile ("com.microsoft.azure:azure-documentdb:2.6.2"){
+  compile ("com.microsoft.azure:azure-documentdb:2.6.3"){
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
   }
