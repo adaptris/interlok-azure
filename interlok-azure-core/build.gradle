@@ -14,7 +14,7 @@ dependencies {
         because "CVE-2021-27568: Affect json-smart up to (excluding) 2.3.1"
       }
     }
-  compile ("com.microsoft.graph:microsoft-graph:2.5.0")
+  compile ("com.microsoft.graph:microsoft-graph:3.8.0")
   compile ("com.azure:azure-identity:1.2.5") {
     // Exclude KeePassJava2 dependencies, because we don't care
     // If people want it, then can include it themselves.
