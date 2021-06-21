@@ -8,7 +8,7 @@ ext {
 
 dependencies {
 
-  compile ("com.microsoft.azure:msal4j:1.10.0")
+  compile ("com.microsoft.azure:msal4j:1.10.1")
     constraints {
       compile("net.minidev:json-smart:2.3.1") {
         because "CVE-2021-27568: Affect json-smart up to (excluding) 2.3.1"
