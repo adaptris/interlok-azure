@@ -10,7 +10,7 @@ dependencies {
 
   api ("com.microsoft.azure:msal4j:1.10.1")
     constraints {
-      api("net.minidev:json-smart:2.3.1") {
+      api("net.minidev:json-smart:2.4.7") {
         because "CVE-2021-27568: Affect json-smart up to (excluding) 2.3.1"
       }
     }
