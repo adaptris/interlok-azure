@@ -5,7 +5,7 @@ ext {
 }
 
 dependencies {
-  compile project(':interlok-azure-core')
+  api project(':interlok-azure-core')
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
