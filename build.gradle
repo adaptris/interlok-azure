@@ -3,7 +3,7 @@ import org.apache.tools.ant.taskdefs.condition.Os
 
 plugins {
   id 'com.github.spotbugs' version '4.7.4' apply false
-  id "io.freefair.lombok" version "5.3.3.3" apply false
+  id "io.freefair.lombok" version "6.1.0" apply false
   id 'org.owasp.dependencycheck' version '6.3.1' apply false
 }
 
@@ -107,7 +107,7 @@ subprojects {
   group   = 'com.adaptris'
   version = releaseVersion
   def versionDir = "$buildDir/version"
-  generateLombokConfig.enabled = false
+  lombok.disableConfig = true
 
   repositories {
     mavenCentral()
