@@ -22,7 +22,7 @@ dependencies {
     exclude group: "org.simpleframework", module: "simple-xml"
     exclude group: "io.netty"
   }
-  api ("com.azure:azure-storage-file-datalake:12.7.2") {
+  api ("com.azure:azure-storage-file-datalake:12.7.3") {
     exclude group: "io.netty"
   }
 
