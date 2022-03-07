@@ -15,7 +15,7 @@ dependencies {
       }
     }
   api ("com.microsoft.graph:microsoft-graph:2.5.0")
-  api ("com.azure:azure-identity:1.4.4") {
+  api ("com.azure:azure-identity:1.4.5") {
     // Exclude KeePassJava2 dependencies, because we don't care
     // If people want it, then can include it themselves.
     exclude group: "org.linguafranca.pwdb", module: "KeePassJava2"
