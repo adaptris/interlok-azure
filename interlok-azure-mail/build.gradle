@@ -1,6 +1,6 @@
 ext {
-  componentName='Interlok Azure/Outlook'
-  componentDesc="Send/Receive emails via Office 365/Exchange"
+  componentName = 'Interlok Azure/Outlook'
+  componentDesc = "Send/Receive emails via Office 365/Exchange"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
 }
 

@@ -1,9 +1,9 @@
 ext {
-  componentName='Interlok Azure/Common'
-  componentDesc="Common components for interacting with Azure and Office 365"
+  componentName = 'Interlok Azure/Common'
+  componentDesc = "Common components for interacting with Azure and Office 365"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  jacksonVersion = "2.13.2"
-  nettyVersion='4.1.75.Final'
+  jacksonVersion = '2.13.2.20220324'
+  nettyVersion = '4.1.75.Final'
 }
 
 dependencies {
@@ -39,11 +39,13 @@ dependencies {
   api ("com.google.guava:guava:31.1-jre")
   // azure-core via azure-identity has an explicit dependency on these jars,
   // so we need to pin the right version
-  api ("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
-  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion")
+  // Dependency to platform/BOM
+  implementation (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
+  api ("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-xml")
   // should be pulled in by the jackson-datatype/dataformat deps.
-  api ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
-  api ("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
+  api ("com.fasterxml.jackson.core:jackson-databind")
+  api ("com.fasterxml.jackson.core:jackson-core")
 
   api ("commons-codec:commons-codec:1.15")
 }

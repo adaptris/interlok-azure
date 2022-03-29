@@ -1,6 +1,6 @@
 ext {
-  componentName='Interlok Azure/DataLake'
-  componentDesc='Upload/Download files stored in Azure Datalake blobstorage'
+  componentName = 'Interlok Azure/DataLake'
+  componentDesc = 'Upload/Download files stored in Azure Datalake blobstorage'
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
 }
 
