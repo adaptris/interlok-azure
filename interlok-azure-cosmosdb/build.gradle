@@ -12,7 +12,7 @@ dependencies {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
   }
   // Dependency to platform/BOM
-  implementation (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
+  api (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
   api ("com.fasterxml.jackson.core:jackson-databind")
   api ("com.fasterxml.jackson.core:jackson-core")
   api ("commons-codec:commons-codec:1.15")

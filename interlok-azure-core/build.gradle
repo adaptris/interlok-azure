@@ -40,7 +40,7 @@ dependencies {
   // azure-core via azure-identity has an explicit dependency on these jars,
   // so we need to pin the right version
   // Dependency to platform/BOM
-  implementation (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
+  api (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
   api ("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
   api ("com.fasterxml.jackson.dataformat:jackson-dataformat-xml")
   // should be pulled in by the jackson-datatype/dataformat deps.
