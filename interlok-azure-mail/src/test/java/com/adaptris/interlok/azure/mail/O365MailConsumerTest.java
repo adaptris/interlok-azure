@@ -1,32 +1,10 @@
 package com.adaptris.interlok.azure.mail;
 
-import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.FixedIntervalPoller;
-import com.adaptris.core.MultiPayloadMessageFactory;
-import com.adaptris.core.Poller;
-import com.adaptris.core.QuartzCronPoller;
-import com.adaptris.core.StandaloneConsumer;
-import com.adaptris.core.stubs.MockMessageListener;
-import com.adaptris.core.util.LifecycleHelper;
-import com.adaptris.interlok.azure.AzureConnection;
-import com.adaptris.interlok.azure.GraphAPIConnection;
-import com.adaptris.interlok.junit.scaffolding.ExampleConsumerCase;
-import com.adaptris.util.TimeInterval;
-import com.microsoft.graph.models.extensions.EmailAddress;
-import com.microsoft.graph.models.extensions.IGraphServiceClient;
-import com.microsoft.graph.models.extensions.ItemBody;
-import com.microsoft.graph.models.extensions.Message;
-import com.microsoft.graph.models.extensions.Recipient;
-import com.microsoft.graph.requests.extensions.IMailFolderRequestBuilder;
-import com.microsoft.graph.requests.extensions.IMessageCollectionPage;
-import com.microsoft.graph.requests.extensions.IMessageCollectionRequest;
-import com.microsoft.graph.requests.extensions.IMessageCollectionRequestBuilder;
-import com.microsoft.graph.requests.extensions.IMessageRequest;
-import com.microsoft.graph.requests.extensions.IMessageRequestBuilder;
-import com.microsoft.graph.requests.extensions.IUserRequestBuilder;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.FileInputStream;
 import java.io.InterruptedIOException;
@@ -36,14 +14,35 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.Test;
 
-public class O365MailConsumerTest extends ExampleConsumerCase
-{
+import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.FixedIntervalPoller;
+import com.adaptris.core.MultiPayloadMessageFactory;
+import com.adaptris.core.Poller;
+import com.adaptris.core.QuartzCronPoller;
+import com.adaptris.core.StandaloneConsumer;
+import com.adaptris.core.stubs.MockMessageListener;
+import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.interlok.azure.GraphAPIConnection;
+import com.adaptris.interlok.junit.scaffolding.ExampleConsumerCase;
+import com.adaptris.util.TimeInterval;
+import com.microsoft.graph.models.EmailAddress;
+import com.microsoft.graph.models.ItemBody;
+import com.microsoft.graph.models.Message;
+import com.microsoft.graph.models.Recipient;
+import com.microsoft.graph.requests.GraphServiceClient;
+import com.microsoft.graph.requests.MailFolderRequestBuilder;
+import com.microsoft.graph.requests.MessageCollectionPage;
+import com.microsoft.graph.requests.MessageCollectionRequest;
+import com.microsoft.graph.requests.MessageCollectionRequestBuilder;
+import com.microsoft.graph.requests.MessageRequest;
+import com.microsoft.graph.requests.MessageRequestBuilder;
+import com.microsoft.graph.requests.UserRequestBuilder;
+
+public class O365MailConsumerTest extends ExampleConsumerCase {
   private static final String APPLICATION_ID = "47ea49b0-670a-47c1-9303-0b45ffb766ec";
   private static final String TENANT_ID = "cbf4a38d-3117-48cd-b54b-861480ee93cd";
   private static final String CLIENT_SECRET = "NGMyYjY0MTEtOTU0Ny00NTg0LWE3MzQtODg2ZDAzZGVmZmY1Cg==";
@@ -52,28 +51,21 @@ public class O365MailConsumerTest extends ExampleConsumerCase
   private static final String SUBJECT = "InterlokMail Office365 Test Message";
   private static final String MESSAGE = "Bacon ipsum dolor amet tail landjaeger ribeye sausage, prosciutto pork belly strip steak pork loin pork bacon biltong ham hock leberkas boudin chicken. Brisket sirloin ground round, drumstick cupim rump chislic tongue short loin pastrami bresaola pork belly alcatra spare ribs buffalo. Swine chuck frankfurter pancetta. Corned beef spare ribs pork kielbasa, chuck jerky t-bone ground round burgdoggen.";
 
-  private static final Poller[] POLLERS =
-  {
-    new FixedIntervalPoller(new TimeInterval(60L, TimeUnit.SECONDS)),
-    new QuartzCronPoller("0 */5 * * * ?"),
-  };
+  private static final Poller[] POLLERS = { new FixedIntervalPoller(new TimeInterval(60L, TimeUnit.SECONDS)),
+      new QuartzCronPoller("0 */5 * * * ?"), };
 
-  private AzureConnection connection;
+  private GraphAPIConnection connection;
   private O365MailConsumer consumer;
 
   private boolean liveTests = false;
 
   @Before
-  public void setUp()
-  {
+  public void setUp() {
     Properties properties = new Properties();
-    try
-    {
+    try {
       properties.load(new FileInputStream(this.getClass().getResource("o365.properties").getFile()));
       liveTests = true;
-    }
-    catch (Exception e)
-    {
+    } catch (Exception e) {
       // do nothing
     }
 
@@ -89,39 +81,32 @@ public class O365MailConsumerTest extends ExampleConsumerCase
   }
 
   @Test
-  public void testLiveConsumer() throws Exception
-  {
+  public void testLiveConsumer() throws Exception {
     Assume.assumeTrue(liveTests);
 
     MockMessageListener mockMessageListener = new MockMessageListener(10);
     StandaloneConsumer standaloneConsumer = new StandaloneConsumer(connection, consumer);
     standaloneConsumer.registerAdaptrisMessageListener(mockMessageListener);
-    try
-    {
+    try {
       LifecycleHelper.init(standaloneConsumer);
       LifecycleHelper.prepare(standaloneConsumer);
       LifecycleHelper.start(standaloneConsumer);
 
-      waitForMessages(mockMessageListener, 5, 5000); // wait until we get five new emails or for 5 seconds
+      waitForMessages(mockMessageListener, 5, 10000); // Wait until we get five new emails or for 10 seconds
 
       List<AdaptrisMessage> messages = mockMessageListener.getMessages();
 
       System.out.println("Found " + messages.size() + " emails");
-      Thread.sleep(5000); // sleep for 5 seconds, otherwise the Graph SDK complains we disconnected while waiting for a response
-    }
-    catch (InterruptedIOException | InterruptedException e)
-    {
+      Thread.sleep(5000); // Sleep for 5 seconds, otherwise the Graph SDK complains we disconnected while waiting for a response
+    } catch (InterruptedIOException | InterruptedException e) {
       // Ignore these as they're occasionally thrown by the Graph SDK when the connection is closed while it's still processing
-    }
-    finally
-    {
+    } finally {
       stop(standaloneConsumer);
     }
   }
 
   @Test
-  public void testMockConsumer() throws Exception
-  {
+  public void testMockConsumer() throws Exception {
     Assume.assumeFalse(liveTests);
 
     connection = mock(GraphAPIConnection.class);
@@ -130,22 +115,21 @@ public class O365MailConsumerTest extends ExampleConsumerCase
     MockMessageListener mockMessageListener = new MockMessageListener(10);
     StandaloneConsumer standaloneConsumer = new StandaloneConsumer(connection, consumer);
     standaloneConsumer.registerAdaptrisMessageListener(mockMessageListener);
-    try
-    {
+    try {
       when(connection.retrieveConnection(any())).thenReturn(connection);
 
-      IGraphServiceClient client = mock(IGraphServiceClient.class);
+      GraphServiceClient client = mock(GraphServiceClient.class);
       when(connection.getClientConnection()).thenReturn(client);
-      IUserRequestBuilder userRequestBuilder = mock(IUserRequestBuilder.class);
+      UserRequestBuilder userRequestBuilder = mock(UserRequestBuilder.class);
       when(client.users(USERNAME)).thenReturn(userRequestBuilder);
-      IMailFolderRequestBuilder mailRequestBuilder = mock(IMailFolderRequestBuilder.class);
+      MailFolderRequestBuilder mailRequestBuilder = mock(MailFolderRequestBuilder.class);
       when(userRequestBuilder.mailFolders(O365MailConsumer.DEFAULT_FOLDER)).thenReturn(mailRequestBuilder);
-      IMessageCollectionRequestBuilder messageCollectionRequestBuilder = mock(IMessageCollectionRequestBuilder.class);
+      MessageCollectionRequestBuilder messageCollectionRequestBuilder = mock(MessageCollectionRequestBuilder.class);
       when(mailRequestBuilder.messages()).thenReturn(messageCollectionRequestBuilder);
-      IMessageCollectionRequest messageCollectionRequest = mock(IMessageCollectionRequest.class);
+      MessageCollectionRequest messageCollectionRequest = mock(MessageCollectionRequest.class);
       when(messageCollectionRequestBuilder.buildRequest()).thenReturn(messageCollectionRequest);
       when(messageCollectionRequest.filter(O365MailConsumer.DEFAULT_FILTER)).thenReturn(messageCollectionRequest);
-      IMessageCollectionPage messageResponse = mock(IMessageCollectionPage.class);
+      MessageCollectionPage messageResponse = mock(MessageCollectionPage.class);
       when(messageCollectionRequest.get()).thenReturn(messageResponse);
       Message message = new Message();
       message.id = "7cbd04e3e8be1a706b19377ba82bd6b4";
@@ -167,9 +151,9 @@ public class O365MailConsumerTest extends ExampleConsumerCase
       message.hasAttachments = false;
       when(messageResponse.getCurrentPage()).thenReturn(Arrays.asList(message));
 
-      IMessageRequestBuilder messageRequestBuilder = mock(IMessageRequestBuilder.class);
+      MessageRequestBuilder messageRequestBuilder = mock(MessageRequestBuilder.class);
       when(userRequestBuilder.messages(anyString())).thenReturn(messageRequestBuilder);
-      IMessageRequest messageRequest = mock(IMessageRequest.class);
+      MessageRequest messageRequest = mock(MessageRequest.class);
       when(messageRequestBuilder.buildRequest()).thenReturn(messageRequest);
       when(messageRequest.select(anyString())).thenReturn(messageRequest);
       when(messageRequest.get()).thenReturn(message);
@@ -184,27 +168,22 @@ public class O365MailConsumerTest extends ExampleConsumerCase
 
       assertEquals(1, messages.size());
       assertEquals(MESSAGE, messages.get(0).getContent());
-    }
-    finally
-    {
+    } finally {
       stop(standaloneConsumer);
     }
   }
 
   @Override
-  protected Object retrieveObjectForSampleConfig()
-  {
+  protected Object retrieveObjectForSampleConfig() {
     return new StandaloneConsumer(connection, consumer);
   }
 
   @Override
-  protected List<StandaloneConsumer> retrieveObjectsForSampleConfig()
-  {
+  protected List<StandaloneConsumer> retrieveObjectsForSampleConfig() {
     List<StandaloneConsumer> result = new ArrayList<>();
-    for (Poller poller : POLLERS)
-    {
-      StandaloneConsumer standaloneConsumer = (StandaloneConsumer)retrieveObjectForSampleConfig();
-      ((O365MailConsumer)standaloneConsumer.getConsumer()).setPoller(poller);
+    for (Poller poller : POLLERS) {
+      StandaloneConsumer standaloneConsumer = (StandaloneConsumer) retrieveObjectForSampleConfig();
+      ((O365MailConsumer) standaloneConsumer.getConsumer()).setPoller(poller);
       result.add(standaloneConsumer);
     }
     return result;
