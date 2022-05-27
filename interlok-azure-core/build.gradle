@@ -16,8 +16,14 @@ dependencies {
     }
   api ("com.microsoft.graph:microsoft-graph:2.5.0") {
     exclude group: "com.google.code.gson", module: "gson"
+    exclude group: "com.squareup.okhttp3", module: "okhttp"
   }
   implementation ("com.google.code.gson:gson:2.9.0")
+  implementation ("com.squareup.okhttp3:okhttp:4.9.3") {
+    exclude group: "com.google.code.gson", module: "gson"
+    exclude group: "com.squareup.okio", module: "okio"
+  }
+  implementation ("com.squareup.okio:okio:3.1.0")
   api ("com.azure:azure-identity:1.5.1") {
     // Exclude KeePassJava2 dependencies, because we don't care
     // If people want it, then can include it themselves.
