@@ -28,9 +28,12 @@ public class GraphAPIConnection extends AzureConnection<GraphServiceClient<?>> {
   @Override
   protected void initConnection() throws CoreException {
     try {
-      ClientSecretCredential tokenCredential = new ClientSecretCredentialBuilder().clientId(applicationId).clientSecret(clientSecret())
-          .tenantId(getTenantId()).build();
-      tokenCredentialAuthProvider = new TokenCredentialAuthProvider(Collections.singletonList(SCOPE), tokenCredential);
+      ClientSecretCredential clientSecretCredential = new ClientSecretCredentialBuilder()
+          .clientId(applicationId)
+          .clientSecret(clientSecret())
+          .tenantId(getTenantId())
+          .build();
+      tokenCredentialAuthProvider = new TokenCredentialAuthProvider(Collections.singletonList(SCOPE), clientSecretCredential);
     } catch (Exception e) {
       log.error("Could not identify Azure application or tenant", e);
       throw new CoreException(e);

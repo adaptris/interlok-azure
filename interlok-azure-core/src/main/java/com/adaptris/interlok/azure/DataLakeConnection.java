@@ -1,5 +1,7 @@
 package com.adaptris.interlok.azure;
 
+import javax.validation.constraints.NotBlank;
+
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.core.CoreException;
@@ -8,10 +10,9 @@ import com.azure.identity.ClientSecretCredentialBuilder;
 import com.azure.storage.file.datalake.DataLakeServiceClient;
 import com.azure.storage.file.datalake.DataLakeServiceClientBuilder;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+
 import lombok.Getter;
 import lombok.Setter;
-
-import javax.validation.constraints.NotBlank;
 
 @XStreamAlias("azure-data-lake-connection")
 @AdapterComponent
@@ -41,7 +42,7 @@ public class DataLakeConnection extends AzureConnection<DataLakeServiceClient>
       clientSecretCredential = new ClientSecretCredentialBuilder()
           .clientId(applicationId)
           .clientSecret(clientSecret())
-          .tenantId(tenantId)
+          .tenantId(getTenantId())
           .build();
     }
     catch (Exception e)
@@ -65,6 +66,7 @@ public class DataLakeConnection extends AzureConnection<DataLakeServiceClient>
   @Override
   public DataLakeServiceClient getClientConnection()
   {
+    // Should we createt the client in startConnection?
     return new DataLakeServiceClientBuilder().credential(clientSecretCredential).endpoint(String.format("https://%s.dfs.core.windows.net", account)).buildClient();
   }
 }
