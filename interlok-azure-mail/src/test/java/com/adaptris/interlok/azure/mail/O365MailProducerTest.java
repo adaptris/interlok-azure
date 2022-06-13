@@ -27,8 +27,7 @@ import com.microsoft.graph.requests.UserRequestBuilder;
 import com.microsoft.graph.requests.UserSendMailRequest;
 import com.microsoft.graph.requests.UserSendMailRequestBuilder;
 
-public class O365MailProducerTest extends ExampleProducerCase
-{
+public class O365MailProducerTest extends ExampleProducerCase {
   private static final String APPLICATION_ID = "47ea49b0-670a-47c1-9303-0b45ffb766ec";
   private static final String TENANT_ID = "cbf4a38d-3117-48cd-b54b-861480ee93cd";
   private static final String CLIENT_SECRET = "NGMyYjY0MTEtOTU0Ny00NTg0LWE3MzQtODg2ZDAzZGVmZmY1Cg==";
@@ -43,16 +42,12 @@ public class O365MailProducerTest extends ExampleProducerCase
   private boolean liveTests = false;
 
   @Before
-  public void setUp()
-  {
+  public void setUp() {
     Properties properties = new Properties();
-    try
-    {
+    try {
       properties.load(new FileInputStream(this.getClass().getResource("o365.properties").getFile()));
       liveTests = true;
-    }
-    catch (Exception e)
-    {
+    } catch (Exception e) {
       // do nothing
     }
 
@@ -70,8 +65,7 @@ public class O365MailProducerTest extends ExampleProducerCase
   }
 
   @Test
-  public void testLiveProducer() throws Exception
-  {
+  public void testLiveProducer() throws Exception {
     Assume.assumeTrue(liveTests);
 
     AdaptrisMessage message = AdaptrisMessageFactory.getDefaultInstance().newMessage(MESSAGE);
@@ -80,8 +74,7 @@ public class O365MailProducerTest extends ExampleProducerCase
   }
 
   @Test
-  public void testMockProducer() throws Exception
-  {
+  public void testMockProducer() throws Exception {
     Assume.assumeFalse(liveTests);
 
     connection = mock(GraphAPIConnection.class);
@@ -106,14 +99,12 @@ public class O365MailProducerTest extends ExampleProducerCase
   }
 
   @Override
-  protected Object retrieveObjectForSampleConfig()
-  {
+  protected Object retrieveObjectForSampleConfig() {
     return new StandaloneProducer(connection, producer);
   }
 
   @Override
-  protected List<StandaloneProducer> retrieveObjectsForSampleConfig()
-  {
-    return Collections.singletonList((StandaloneProducer)retrieveObjectForSampleConfig());
+  protected List<StandaloneProducer> retrieveObjectsForSampleConfig() {
+    return Collections.singletonList((StandaloneProducer) retrieveObjectForSampleConfig());
   }
 }
