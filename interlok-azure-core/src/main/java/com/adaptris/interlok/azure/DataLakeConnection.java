@@ -17,8 +17,7 @@ import lombok.Setter;
 @XStreamAlias("azure-data-lake-connection")
 @AdapterComponent
 @ComponentProfile(summary = "Connect to an Azure tenant and access the Data Lake", tag = "connections,azure,data lake,data,lake")
-public class DataLakeConnection extends AzureConnection<DataLakeServiceClient>
-{
+public class DataLakeConnection extends AzureConnection<DataLakeServiceClient> {
   /**
    * The Azure account to use to access the Data Lake.
    */
@@ -28,25 +27,20 @@ public class DataLakeConnection extends AzureConnection<DataLakeServiceClient>
   private String account;
 
   private transient ClientSecretCredential clientSecretCredential;
+  private transient DataLakeServiceClient clientConnection;
 
   /**
    * Initialise the underlying connection.
    *
-   * @throws CoreException wrapping any exception.
+   * @throws CoreException
+   *           wrapping any exception.
    */
   @Override
-  protected void initConnection() throws CoreException
-  {
-    try
-    {
-      clientSecretCredential = new ClientSecretCredentialBuilder()
-          .clientId(applicationId)
-          .clientSecret(clientSecret())
-          .tenantId(getTenantId())
-          .build();
-    }
-    catch (Exception e)
-    {
+  protected void initConnection() throws CoreException {
+    try {
+      clientSecretCredential = new ClientSecretCredentialBuilder().clientId(applicationId).clientSecret(clientSecret())
+          .tenantId(getTenantId()).build();
+    } catch (Exception e) {
       log.error("Could not identify Azure application or tenant", e);
       throw new CoreException(e);
     }
@@ -55,18 +49,18 @@ public class DataLakeConnection extends AzureConnection<DataLakeServiceClient>
   /**
    * Start the underlying connection.
    *
-   * @throws CoreException wrapping any exception.
+   * @throws CoreException
+   *           wrapping any exception.
    */
   @Override
-  protected void startConnection()
-  {
-    /* do nothing */
+  protected void startConnection() {
+    clientConnection = new DataLakeServiceClientBuilder().credential(clientSecretCredential)
+        .endpoint(String.format("https://%s.dfs.core.windows.net", account)).buildClient();
   }
 
   @Override
-  public DataLakeServiceClient getClientConnection()
-  {
-    // Should we createt the client in startConnection?
-    return new DataLakeServiceClientBuilder().credential(clientSecretCredential).endpoint(String.format("https://%s.dfs.core.windows.net", account)).buildClient();
+  public DataLakeServiceClient getClientConnection() {
+    // Should we create the client in startConnection?
+    return clientConnection;
   }
 }
