@@ -4,6 +4,7 @@ import java.util.Collections;
 
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
+import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.CoreException;
 import com.azure.identity.ClientSecretCredential;
 import com.azure.identity.ClientSecretCredentialBuilder;
@@ -17,6 +18,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @XStreamAlias("azure-graph-api-connection")
 @AdapterComponent
 @ComponentProfile(summary = "Connect to an Azure tenant and access the Graph API", tag = "connections,azure,graph api,graph")
+@DisplayOrder(order = { "applicationId", "tenantId", "clientSecret" })
 public class GraphAPIConnection extends AzureConnection<GraphServiceClient<?>> {
 
   // TODO Should we let the user the ability to change the scope?

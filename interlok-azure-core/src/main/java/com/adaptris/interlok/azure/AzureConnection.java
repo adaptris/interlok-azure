@@ -4,7 +4,6 @@ import javax.validation.constraints.NotBlank;
 
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
-import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisConnectionImp;
 import com.adaptris.core.CoreException;
@@ -20,7 +19,6 @@ import lombok.Setter;
 @XStreamAlias("azure-connection")
 @AdapterComponent
 @ComponentProfile(summary = "Connect to an Azure tenant", tag = "connections,azure")
-@DisplayOrder(order = { "applicationId", "tenantId", "clientSecret" })
 public abstract class AzureConnection<C> extends AdaptrisConnectionImp {
   /**
    * The ID of the Azure application.

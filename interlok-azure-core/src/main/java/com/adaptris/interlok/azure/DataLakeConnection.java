@@ -4,6 +4,7 @@ import javax.validation.constraints.NotBlank;
 
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
+import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.CoreException;
 import com.azure.identity.ClientSecretCredential;
 import com.azure.identity.ClientSecretCredentialBuilder;
@@ -17,6 +18,7 @@ import lombok.Setter;
 @XStreamAlias("azure-data-lake-connection")
 @AdapterComponent
 @ComponentProfile(summary = "Connect to an Azure tenant and access the Data Lake", tag = "connections,azure,data lake,data,lake")
+@DisplayOrder(order = { "applicationId", "tenantId", "clientSecret" })
 public class DataLakeConnection extends AzureConnection<DataLakeServiceClient> {
   /**
    * The Azure account to use to access the Data Lake.
