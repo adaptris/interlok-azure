@@ -121,7 +121,6 @@ public class O365MailConsumer extends AdaptrisPollingConsumer {
    */
   @Override
   protected void prepareConsumer() {
-    /* Do nothing */
   }
 
   /**
@@ -146,7 +145,7 @@ public class O365MailConsumer extends AdaptrisPollingConsumer {
 
       for (Message outlookMessage : currentPage) {
         String id = outlookMessage.id;
-        AdaptrisMessage adaptrisMessage = getMessageFactory().newMessage(outlookMessage.body.content);
+        AdaptrisMessage adaptrisMessage = decode(outlookMessage.body.content.getBytes());
 
         if (adaptrisMessage instanceof MultiPayloadAdaptrisMessage) {
           ((MultiPayloadAdaptrisMessage) adaptrisMessage).setCurrentPayloadId(id);
