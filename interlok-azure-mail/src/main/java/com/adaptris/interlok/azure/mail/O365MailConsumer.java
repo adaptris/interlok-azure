@@ -121,6 +121,7 @@ public class O365MailConsumer extends AdaptrisPollingConsumer {
    */
   @Override
   protected void prepareConsumer() {
+    /* do nothing */
   }
 
   /**
