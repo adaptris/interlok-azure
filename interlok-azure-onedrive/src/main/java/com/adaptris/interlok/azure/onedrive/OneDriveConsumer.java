@@ -21,6 +21,8 @@ import java.util.List;
 
 import javax.validation.constraints.NotBlank;
 
+import org.apache.commons.io.IOUtils;
+
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
@@ -88,7 +90,7 @@ public class OneDriveConsumer extends AdaptrisPollingConsumer {
       for (DriveItem driveItem : currentPage) {
         AdaptrisMessage adaptrisMessage;
         try (InputStream remoteStream = graphClient.users(username).drives(oneDrive.id).items(driveItem.id).content().buildRequest().get()) {
-          adaptrisMessage = decode(remoteStream.readAllBytes());
+          adaptrisMessage = decode(IOUtils.toByteArray(remoteStream));
         }
 
         adaptrisMessage.addMetadata("filename", driveItem.name);

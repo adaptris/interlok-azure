@@ -3,13 +3,13 @@ import org.apache.tools.ant.taskdefs.condition.Os
 
 plugins {
   id 'com.github.spotbugs' version '5.0.7' apply false
-  id "io.freefair.lombok" version "6.4.3" apply false
-  id 'org.owasp.dependencycheck' version '7.1.0.1' apply false
+  id "io.freefair.lombok" version "5.3.0" apply false
+  id 'org.owasp.dependencycheck' version '6.5.3' apply false
 }
 
 ext {
-  interlokCoreVersion = project.findProperty('interlokCoreVersion') ?: '4.5-SNAPSHOT'
-  releaseVersion = project.findProperty('releaseVersion') ?: '4.5-SNAPSHOT'
+  interlokCoreVersion = project.findProperty('interlokCoreVersion') ?: '3.12-SNAPSHOT'
+  releaseVersion = project.findProperty('releaseVersion') ?: '3.12-SNAPSHOT'
   nexusBaseUrl = project.findProperty('nexusBaseUrl') ?: 'https://nexus.adaptris.net/nexus'
   mavenPublishUrl = project.findProperty('mavenPublishUrl') ?: nexusBaseUrl + '/content/repositories/snapshots'
   javadocsBaseUrl = nexusBaseUrl + "/content/sites/javadocs/com/adaptris"
@@ -101,13 +101,13 @@ subprojects {
   apply plugin: 'org.owasp.dependencycheck'
   apply plugin: 'project-report'
 
-  sourceCompatibility = JavaVersion.VERSION_11
-  targetCompatibility = JavaVersion.VERSION_11
+  sourceCompatibility = JavaVersion.VERSION_1_8
+  targetCompatibility = JavaVersion.VERSION_1_8
 
   group   = 'com.adaptris'
   version = releaseVersion
   def versionDir = "$buildDir/version"
-  lombok.disableConfig = true
+  generateLombokConfig.enabled = false
 
   repositories {
     mavenCentral()
@@ -181,7 +181,6 @@ subprojects {
       taglets = ["com.adaptris.taglet.ConfigTaglet", "com.adaptris.taglet.LicenseTaglet"]
       options.addStringOption "tagletpath", configurations.javadoc.asPath
       options.addStringOption('Xdoclint:none', '-quiet')
-      options.addBooleanOption "-no-module-directories", true
     }
   }
 
@@ -203,7 +202,6 @@ subprojects {
       taglets = ["com.adaptris.taglet.ConfigTaglet", "com.adaptris.taglet.LicenseTaglet"]
       options.addStringOption "tagletpath", configurations.javadoc.asPath
       options.addStringOption('Xdoclint:none', '-quiet')
-      options.addBooleanOption "-no-module-directories", true
       options.docletpath = configurations.umlDoclet.files.asType(List)
       options.doclet = "nl.talsmasoftware.umldoclet.UMLDoclet"
       options.addStringOption "umlBasePath", destinationDir.getCanonicalPath()
@@ -265,7 +263,6 @@ subprojects {
       }
     }
     include "package-list"
-    include "element-list"
     into offlineJavadocPackageDir
   }
 

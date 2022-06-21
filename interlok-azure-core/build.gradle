@@ -39,6 +39,7 @@ dependencies {
   implementation ("io.netty:netty-codec-http:$nettyVersion")
   implementation ("io.netty:netty-resolver-dns:$nettyVersion")
 
+  api ("org.codehaus.woodstox:stax2-api:4.2.1")
   api ("org.codehaus.staxmate:stax2:2.1")
   api ("com.google.guava:guava:31.1-jre")
   // azure-core via azure-identity has an explicit dependency on these jars,
@@ -98,7 +99,7 @@ publishing {
       pom.withXml {
         asNode().appendNode("name", componentName)
         asNode().appendNode("description", componentDesc)
-		asNode().appendNode("url", "https://interlok.adaptris.net/interlok-docs/#/")
+        asNode().appendNode("url", "https://interlok.adaptris.net/interlok-docs/#/")
         def properties = asNode().appendNode("properties")
         properties.appendNode("target", "3.11.1+")
         properties.appendNode("tags", "azure,office365,outlook,exchange")

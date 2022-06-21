@@ -1,7 +1,7 @@
 extraction:
   java:
     index:
-      java_version: 11
+      java_version: 1.8
       gradle:
         version: 7.1
       build_command:
