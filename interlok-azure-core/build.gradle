@@ -16,6 +16,7 @@ dependencies {
     }
   api ("com.microsoft.graph:microsoft-graph:5.33.0") {
     exclude group: "com.google.code.gson", module: "gson"
+    exclude group: "com.squareup.okhttp3", module: "okhttp"
   }
   implementation ("com.google.code.gson:gson:2.9.1") {
     exclude group: "com.squareup.okio", module: "okio"
