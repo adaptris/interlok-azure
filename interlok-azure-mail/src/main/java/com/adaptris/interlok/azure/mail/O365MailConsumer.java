@@ -16,6 +16,7 @@
 
 package com.adaptris.interlok.azure.mail;
 
+import static com.adaptris.core.AdaptrisMessageFactory.defaultIfNull;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 
 import java.io.ByteArrayInputStream;
@@ -146,7 +147,8 @@ public class O365MailConsumer extends AdaptrisPollingConsumer {
 
       for (Message outlookMessage : currentPage) {
         String id = outlookMessage.id;
-        AdaptrisMessage adaptrisMessage = decode(outlookMessage.body.content.getBytes());
+        AdaptrisMessage adaptrisMessage = decode(
+            outlookMessage.body.content.getBytes(defaultIfNull(getMessageFactory()).getDefaultCharEncoding()));
 
         if (adaptrisMessage instanceof MultiPayloadAdaptrisMessage) {
           ((MultiPayloadAdaptrisMessage) adaptrisMessage).setCurrentPayloadId(id);
