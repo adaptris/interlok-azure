@@ -154,4 +154,5 @@ public class DocumentDownloadService extends ServiceImp implements ConnectedServ
   protected void closeService() {
     LifecycleHelper.close(connection);
   }
+
 }

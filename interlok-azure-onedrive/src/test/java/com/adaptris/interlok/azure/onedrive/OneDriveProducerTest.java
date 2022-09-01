@@ -193,4 +193,5 @@ public class OneDriveProducerTest extends ExampleProducerCase {
   protected List<StandaloneProducer> retrieveObjectsForSampleConfig() {
     return Collections.singletonList((StandaloneProducer) retrieveObjectForSampleConfig());
   }
+
 }

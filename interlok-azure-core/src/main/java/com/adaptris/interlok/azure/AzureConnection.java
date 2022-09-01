@@ -51,7 +51,7 @@ public abstract class AzureConnection<C> extends AdaptrisConnectionImp {
    * {@inheritDoc}.
    */
   @Override
-  protected void prepareConnection() throws CoreException {
+  protected void prepareConnection() {
     /* do nothing */
   }
 

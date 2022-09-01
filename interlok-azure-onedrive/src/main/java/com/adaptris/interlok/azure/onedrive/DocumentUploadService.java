@@ -149,4 +149,5 @@ public class DocumentUploadService extends ServiceImp implements ConnectedServic
   protected void closeService() {
     LifecycleHelper.close(connection);
   }
+
 }

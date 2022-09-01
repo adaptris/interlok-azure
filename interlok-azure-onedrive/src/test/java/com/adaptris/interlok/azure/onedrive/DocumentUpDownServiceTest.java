@@ -44,8 +44,7 @@ import com.microsoft.graph.requests.DriveRequestBuilder;
 import com.microsoft.graph.requests.GraphServiceClient;
 import com.microsoft.graph.requests.UserRequestBuilder;
 
-public class DocumentUpDownServiceTest extends ExampleServiceCase
-{
+public class DocumentUpDownServiceTest extends ExampleServiceCase {
   private static final String APPLICATION_ID = "47ea49b0-670a-47c1-9303-0b45ffb766ec";
   private static final String TENANT_ID = "cbf4a38d-3117-48cd-b54b-861480ee93cd";
   private static final String CLIENT_SECRET = "NGMyYjY0MTEtOTU0Ny00NTg0LWE3MzQtODg2ZDAzZGVmZmY1Cg==";
@@ -62,16 +61,12 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase
   private boolean liveTests = false;
 
   @Before
-  public void setUp() throws Exception
-  {
+  public void setUp() throws Exception {
     Properties properties = new Properties();
-    try
-    {
+    try {
       properties.load(new FileInputStream(this.getClass().getResource("onedrive.properties").getFile()));
       liveTests = true;
-    }
-    catch (Exception e)
-    {
+    } catch (Exception e) {
       // do nothing
     }
 
@@ -80,8 +75,7 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase
     connection.setTenantId(properties.getProperty("TENANT_ID", TENANT_ID));
     connection.setClientSecret(properties.getProperty("CLIENT_SECRET", CLIENT_SECRET));
 
-    if (properties.containsKey("USERNAME"))
-    {
+    if (properties.containsKey("USERNAME")) {
       username = properties.getProperty("USERNAME");
     }
 
@@ -93,11 +87,11 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase
   /**
    * Run through the service tests: upload a CSV file, download it, download & transform it.
    *
-   * @throws Exception If something goes bang.
+   * @throws Exception
+   *           If something goes bang.
    */
   @Test
-  public void liveTests() throws Exception
-  {
+  public void liveTests() throws Exception {
     Assume.assumeTrue(liveTests);
 
     AdaptrisMessage message = AdaptrisMessageFactory.getDefaultInstance().newMessage(data);
@@ -129,13 +123,12 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase
     additionalOptions.addKeyValuePair(new KeyValuePair("height", "1000"));
     transform.setAdditionalRequestOptions(additionalOptions);
     transform.doService(message);
-    //        assertTrue(message.getContent().startsWith("?"));
+    // assertTrue(message.getContent().startsWith("?"));
     // Sometimes I had JPEG, sometimes PNG data returned; if no exception is thrown, I'd say we're good
   }
 
   @Test
-  public void mockUploadTest() throws Exception
-  {
+  public void mockUploadTest() throws Exception {
     Assume.assumeFalse(liveTests);
 
     DocumentUploadService upload = documentUploadService();
@@ -181,8 +174,7 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase
   }
 
   @Test
-  public void mockDownloadTest() throws Exception
-  {
+  public void mockDownloadTest() throws Exception {
     Assume.assumeFalse(liveTests);
 
     DocumentDownloadService download = documentDownloadService();
@@ -217,7 +209,7 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase
     DriveItemContentStreamRequestBuilder streamRequestBuilder = mock(DriveItemContentStreamRequestBuilder.class);
     when(driveItemRequestBuilder.content()).thenReturn(streamRequestBuilder);
     DriveItemContentStreamRequest streamRequest = mock(DriveItemContentStreamRequest.class);
-    when(streamRequestBuilder.buildRequest((List<Option>)null)).thenReturn(streamRequest);
+    when(streamRequestBuilder.buildRequest((List<Option>) null)).thenReturn(streamRequest);
     when(streamRequest.get()).thenReturn(new ByteArrayInputStream(data.getBytes(Charset.defaultCharset())));
 
     AdaptrisMessage message = AdaptrisMessageFactory.getDefaultInstance().newMessage();
@@ -227,8 +219,7 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase
   }
 
   @Test
-  public void mockTransformTest() throws Exception
-  {
+  public void mockTransformTest() throws Exception {
     Assume.assumeFalse(liveTests);
 
     DocumentTransformService transform = documentTransformService();
@@ -273,8 +264,7 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase
   }
 
   @Override
-  protected Object retrieveObjectForSampleConfig()
-  {
+  protected Object retrieveObjectForSampleConfig() {
     ServiceList serviceList = new ServiceList();
     serviceList.add(documentUploadService());
     serviceList.add(documentDownloadService());
@@ -282,8 +272,7 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase
     return serviceList;
   }
 
-  private DocumentUploadService documentUploadService()
-  {
+  private DocumentUploadService documentUploadService() {
     DocumentUploadService service = new DocumentUploadService();
     service.setConnection(connection);
     service.setUsername(username);
@@ -291,8 +280,7 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase
     return service;
   }
 
-  private DocumentDownloadService documentDownloadService()
-  {
+  private DocumentDownloadService documentDownloadService() {
     DocumentDownloadService service = new DocumentDownloadService();
     service.setConnection(connection);
     service.setUsername(username);
@@ -300,8 +288,7 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase
     return service;
   }
 
-  private DocumentTransformService documentTransformService()
-  {
+  private DocumentTransformService documentTransformService() {
     DocumentTransformService service = new DocumentTransformService();
     service.setConnection(connection);
     service.setUsername(username);
@@ -309,4 +296,5 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase
     service.setFormat(DocumentTransformService.Format.GLB);
     return service;
   }
+
 }

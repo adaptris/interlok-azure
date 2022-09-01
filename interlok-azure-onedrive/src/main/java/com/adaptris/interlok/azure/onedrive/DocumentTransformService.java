@@ -80,4 +80,5 @@ public class DocumentTransformService extends DocumentDownloadService {
   public enum Format {
     GLB, HTML, JPG, PDF;
   }
+
 }

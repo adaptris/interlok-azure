@@ -47,6 +47,7 @@ import lombok.Setter;
 @ComponentProfile(summary = "Pickup files from a Microsoft Office 365 One Drive account using the Microsoft Graph API", tag = "consumer,file,o365,microsoft,office,365,one drive")
 @DisplayOrder(order = { "username" })
 public class OneDriveConsumer extends AdaptrisPollingConsumer {
+
   /**
    * The username for which One Drive will be polled.
    */
@@ -112,4 +113,5 @@ public class OneDriveConsumer extends AdaptrisPollingConsumer {
   protected String newThreadName() {
     return DestinationHelper.threadName(retrieveAdaptrisMessageListener(), null);
   }
+
 }
