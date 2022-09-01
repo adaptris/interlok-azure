@@ -18,7 +18,7 @@ dependencies {
     exclude group: "com.google.code.gson", module: "gson"
     exclude group: "com.squareup.okhttp3", module: "okhttp"
   }
-  implementation ("com.google.code.gson:gson:2.9.1") {
+  implementation ("com.google.code.gson:gson:2.9.1")
   implementation ("com.squareup.okhttp3:okhttp:4.10.0") {
     exclude group: "com.google.code.gson", module: "gson"
     exclude group: "com.squareup.okio", module: "okio"
