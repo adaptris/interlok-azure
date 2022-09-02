@@ -20,6 +20,7 @@ import static com.adaptris.core.AdaptrisMessageFactory.defaultIfNull;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 
 import java.io.ByteArrayInputStream;
+import java.nio.charset.Charset;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -148,7 +149,7 @@ public class O365MailConsumer extends AdaptrisPollingConsumer {
       for (Message outlookMessage : currentPage) {
         String id = outlookMessage.id;
         AdaptrisMessage adaptrisMessage = decode(
-            outlookMessage.body.content.getBytes(defaultIfNull(getMessageFactory()).getDefaultCharEncoding()));
+            outlookMessage.body.content.getBytes(charset()));
 
         if (adaptrisMessage instanceof MultiPayloadAdaptrisMessage) {
           ((MultiPayloadAdaptrisMessage) adaptrisMessage).setCurrentPayloadId(id);
@@ -239,6 +240,10 @@ public class O365MailConsumer extends AdaptrisPollingConsumer {
 
   private String joinEmailAddresses(List<Recipient> recipients) {
     return CollectionUtils.emptyIfNull(recipients).stream().map(r -> r.emailAddress.address).collect(Collectors.joining(","));
+  }
+
+  private String charset() {
+    return StringUtils.defaultIfBlank(defaultIfNull(getMessageFactory()).getDefaultCharEncoding(), Charset.defaultCharset().name());
   }
 
   /**
