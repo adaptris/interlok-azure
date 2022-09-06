@@ -2,7 +2,7 @@ ext {
   componentName = 'Interlok Azure/Common'
   componentDesc = "Common components for interacting with Azure and Office 365"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  jacksonVersion = '2.13.3'
+  jacksonVersion = '2.13.4'
   nettyVersion = '4.1.80.Final'
 }
 
