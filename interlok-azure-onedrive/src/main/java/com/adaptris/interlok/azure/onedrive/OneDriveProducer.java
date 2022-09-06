@@ -1,5 +1,12 @@
 package com.adaptris.interlok.azure.onedrive;
 
+import java.util.Optional;
+
+import javax.validation.constraints.NotBlank;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.BooleanUtils;
+
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
@@ -10,26 +17,21 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ProduceException;
 import com.adaptris.core.ProduceOnlyProducerImp;
 import com.adaptris.interlok.azure.GraphAPIConnection;
-import com.microsoft.graph.concurrency.ChunkedUploadProvider;
-import com.microsoft.graph.concurrency.IProgressCallback;
-import com.microsoft.graph.core.ClientException;
-import com.microsoft.graph.models.extensions.DriveItem;
-import com.microsoft.graph.models.extensions.DriveItemUploadableProperties;
-import com.microsoft.graph.models.extensions.File;
-import com.microsoft.graph.models.extensions.IGraphServiceClient;
-import com.microsoft.graph.models.extensions.UploadSession;
-import com.microsoft.graph.requests.extensions.IDriveItemCollectionPage;
+import com.microsoft.graph.models.DriveItem;
+import com.microsoft.graph.models.DriveItemCreateUploadSessionParameterSet;
+import com.microsoft.graph.models.File;
+import com.microsoft.graph.models.UploadSession;
+import com.microsoft.graph.requests.DriveItemCollectionPage;
+import com.microsoft.graph.requests.GraphServiceClient;
+import com.microsoft.graph.tasks.IProgressCallback;
+import com.microsoft.graph.tasks.LargeFileUploadTask;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.BooleanUtils;
-
-import javax.validation.constraints.NotBlank;
 
 /**
- * Implementation of a file producer that can place files into a
- * Microsoft One Drive account, using their Graph API and OAuth2.
+ * Implementation of a file producer that can place files into a Microsoft One Drive account, using their Graph API and OAuth2.
  *
  * @config azure-one-drive-producer
  */
@@ -37,8 +39,7 @@ import javax.validation.constraints.NotBlank;
 @AdapterComponent
 @ComponentProfile(summary = "Place files into a Microsoft Office 365 One Drive account using the Microsoft Graph API", tag = "producer,file,o365,microsoft,office,365,one drive")
 @DisplayOrder(order = { "username" })
-public class OneDriveProducer extends ProduceOnlyProducerImp
-{
+public class OneDriveProducer extends ProduceOnlyProducerImp {
   /**
    * The username for which One Drive will be polled.
    */
@@ -70,30 +71,29 @@ public class OneDriveProducer extends ProduceOnlyProducerImp
    * {@inheritDoc}.
    */
   @Override
-  public void prepare()
-  {
-    /* do nothing */
+  public void prepare() {
   }
 
   /**
    * Push the Adaptris message, as a file, to the given One Drive.
    *
-   * @param adaptrisMessage The message to upload.
-   * @param endpoint        Ignored.
-   * @throws ProduceException If there was a uploading the file.
+   * @param adaptrisMessage
+   *          The message to upload.
+   * @param endpoint
+   *          Ignored.
+   * @throws ProduceException
+   *           If there was a uploading the file.
    */
   @Override
-  protected void doProduce(AdaptrisMessage adaptrisMessage, String endpoint) throws ProduceException
-  {
+  protected void doProduce(AdaptrisMessage adaptrisMessage, String endpoint) throws ProduceException {
     String user = adaptrisMessage.resolve(username);
     String file = adaptrisMessage.resolve(filename);
 
     log.debug("Pushing file {} to One Drive as user {}", file, user);
 
-    try
-    {
+    try {
       GraphAPIConnection connection = retrieveConnection(GraphAPIConnection.class);
-      IGraphServiceClient graphClient = connection.getClientConnection();
+      GraphServiceClient<?> graphClient = connection.getClientConnection();
 
       DriveItem newItem = new DriveItem();
       newItem.file = new File();
@@ -101,81 +101,67 @@ public class OneDriveProducer extends ProduceOnlyProducerImp
       newItem.size = adaptrisMessage.getSize();
 
       boolean isNew = true;
-      if (overwrite())
-      {
+      if (overwrite()) {
         /*
-         * By default One Drive doesn't allow files to be overwritten
-         * unless the DriveItem.id matches, so quickly get it
+         * By default One Drive doesn't allow files to be overwritten unless the DriveItem.id matches, so quickly get it
          */
-        IDriveItemCollectionPage children = graphClient.users(user).drive().root().children().buildRequest().get();
-        for (DriveItem driveItem : children.getCurrentPage())
-        {
-          if (driveItem.name.equals(newItem.name))
-          {
-            newItem = driveItem;
-            isNew = false;
-            break;
-          }
+        if (getDriveItem(graphClient, user, file).isPresent()) {
+          newItem = getDriveItem(graphClient, user, file).get();
+          isNew = false;
         }
+
       }
 
-      if (isNew)
-      {
-        // create what could be thought of as a directory entry
+      if (isNew) {
+        // Create what could be thought of as a directory entry
         newItem = graphClient.users(user).drive().items().buildRequest().post(newItem);
       }
 
-      // upload the file data
-      if (adaptrisMessage.getSize() < 4 * FileUtils.ONE_MB)
-      {
+      // Upload the file data
+      if (adaptrisMessage.getSize() < 4 * FileUtils.ONE_MB) {
         graphClient.users(user).drive().items(newItem.id).content().buildRequest().put(adaptrisMessage.getPayload());
-      }
-      else
-      {
+      } else {
         String name = newItem.name;
-        UploadSession uploadSession = graphClient.users(user).drive().items(newItem.id).createUploadSession(new DriveItemUploadableProperties()).buildRequest().post();
-        ChunkedUploadProvider<DriveItem> chunkedUploadProvider = new ChunkedUploadProvider<>(uploadSession, graphClient, adaptrisMessage.getInputStream(), adaptrisMessage.getSize(), DriveItem.class);
-        chunkedUploadProvider.upload(new IProgressCallback()
-        {
-          @Override
-          public void success(Object o)
-          {
-            log.debug("Successfully uploaded {}", name);
-          }
+        UploadSession uploadSession = graphClient.users(user).drive().items(newItem.id)
+            .createUploadSession(new DriveItemCreateUploadSessionParameterSet()).buildRequest().post();
 
-          @Override
-          public void failure(ClientException ex)
-          {
-            log.error("Could not process attachment {} for message {} : {}", name, adaptrisMessage.getUniqueId(), ex);
-          }
+        LargeFileUploadTask<DriveItem> largeFileUploadTask = new LargeFileUploadTask<>(uploadSession, graphClient,
+            adaptrisMessage.getInputStream(), adaptrisMessage.getSize(), DriveItem.class);
 
+        largeFileUploadTask.upload(0, null, new IProgressCallback() {
           @Override
-          public void progress(long current, long max)
-          {
+          public void progress(long current, long max) {
             log.debug("Uploading file {} progress is {} / {}", name, current, max);
           }
         });
 
       }
-    }
-    catch (Exception e)
-    {
+    } catch (Exception e) {
       log.error("Exception processing One Drive file", e);
       throw new ProduceException(e);
     }
+  }
+
+  private Optional<DriveItem> getDriveItem(GraphServiceClient<?> graphClient, String user, String name) {
+    DriveItemCollectionPage children = graphClient.users(user).drive().root().children().buildRequest().get();
+    for (DriveItem driveItem : children.getCurrentPage()) {
+      if (driveItem.name.equals(name)) {
+        return Optional.of(driveItem);
+      }
+    }
+    return Optional.empty();
   }
 
   /**
    * {@inheritDoc}.
    */
   @Override
-  public String endpoint(AdaptrisMessage adaptrisMessage)
-  {
+  public String endpoint(AdaptrisMessage adaptrisMessage) {
     return adaptrisMessage.resolve(username);
   }
 
-  private boolean overwrite()
-  {
+  private boolean overwrite() {
     return BooleanUtils.toBooleanDefaultIfNull(overwrite, true);
   }
+
 }

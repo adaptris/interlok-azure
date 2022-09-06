@@ -1,5 +1,11 @@
 package com.adaptris.interlok.azure.datalake;
 
+import java.io.InputStream;
+
+import javax.validation.constraints.NotBlank;
+
+import org.apache.commons.lang3.BooleanUtils;
+
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
@@ -15,14 +21,9 @@ import com.azure.storage.file.datalake.DataLakeFileClient;
 import com.azure.storage.file.datalake.DataLakeFileSystemClient;
 import com.azure.storage.file.datalake.DataLakeServiceClient;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang3.BooleanUtils;
-
-import javax.validation.constraints.NotBlank;
-import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * Implementation of a file producer that can upload files to Microsoft

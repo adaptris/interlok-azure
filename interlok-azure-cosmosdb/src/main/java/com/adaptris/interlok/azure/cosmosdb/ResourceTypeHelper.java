@@ -1,25 +1,27 @@
 package com.adaptris.interlok.azure.cosmosdb;
 
-import com.microsoft.azure.documentdb.internal.Paths;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
-import org.apache.commons.lang3.BooleanUtils;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.net.URL;
-import java.util.Arrays;
-
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.stripEnd;
 import static org.apache.commons.lang3.StringUtils.stripStart;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.net.URL;
+import java.util.Arrays;
+
+import org.apache.commons.lang3.BooleanUtils;
+
+import com.microsoft.azure.documentdb.internal.Paths;
+
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
+
 /**
  * This is to assist the UI with type-ahead on the ResourceTypes/ResourceSegments
- * 
+ *
  */
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ResourceTypeHelper {
@@ -37,7 +39,7 @@ public class ResourceTypeHelper {
 
   /**
    * Used by the InputFieldHint annotation for type-ahead.
-   * 
+   *
    */
   public static String[] getResourceTypes() {
     return Arrays.copyOf(declaredConstants, declaredConstants.length);
@@ -55,13 +57,14 @@ public class ResourceTypeHelper {
    * <p>
    * Odd number of uri fragments, it's the last one, even number of uri fragments it's the penultimate one.
    * <ul>
-   * <li>https://azuredb.microsoft.com/dbs/tempdb/colls/tempcoll/docs/ -> docs</li>
-   * <li>https://azuredb.microsoft.com/dbs/tempdb/colls/tempcoll/docs/MyName -> docs</li>
+   * <li>https://azuredb.microsoft.com/dbs/tempdb/colls/tempcoll/docs/ -&gt; docs</li>
+   * <li>https://azuredb.microsoft.com/dbs/tempdb/colls/tempcoll/docs/MyName -&gt; docs</li>
    * <li>
    * </ul>
    * </p>
-   * 
-   * @param url the URL endpoint
+   *
+   * @param url
+   *          the URL endpoint
    * @return the ResourceType
    * @see CosmosAuthorizationHeaderFromUrl
    */
@@ -82,13 +85,14 @@ public class ResourceTypeHelper {
    * <p>
    * odd number of uri fragments, then it's everything but the last one; even number of uri fragments it's all of them.
    * <ul>
-   * <li>https://azuredb.microsoft.com/dbs/tempdb/colls -> dbs/tempdb</li>
-   * <li>https://azuredb.microsoft.com/dbs/tempdb/colls/tempcoll/docs/MyName -> dbs/tempdb/colls/tempcoll/docs/MyName</li>
+   * <li>https://azuredb.microsoft.com/dbs/tempdb/colls -&gt; dbs/tempdb</li>
+   * <li>https://azuredb.microsoft.com/dbs/tempdb/colls/tempcoll/docs/MyName -&gt; dbs/tempdb/colls/tempcoll/docs/MyName</li>
    * <li>
    * </ul>
    * </p>
-   * 
-   * @param url the URL endpoint
+   *
+   * @param url
+   *          the URL endpoint
    * @return the ResourceID.
    * @see CosmosAuthorizationHeaderFromUrl
    */

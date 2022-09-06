@@ -12,9 +12,29 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-*/
+ */
 
 package com.adaptris.interlok.azure.mail;
+
+import static com.adaptris.core.AdaptrisMessageFactory.defaultIfNull;
+import static java.nio.charset.StandardCharsets.US_ASCII;
+
+import java.io.ByteArrayInputStream;
+import java.nio.charset.Charset;
+import java.util.Base64;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.mail.BodyPart;
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.util.ByteArrayDataSource;
+import javax.validation.constraints.NotBlank;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
@@ -27,33 +47,22 @@ import com.adaptris.core.AdaptrisPollingConsumer;
 import com.adaptris.core.MultiPayloadAdaptrisMessage;
 import com.adaptris.core.util.DestinationHelper;
 import com.adaptris.interlok.azure.GraphAPIConnection;
-import com.microsoft.graph.models.extensions.Attachment;
-import com.microsoft.graph.models.extensions.FileAttachment;
-import com.microsoft.graph.models.extensions.IGraphServiceClient;
-import com.microsoft.graph.models.extensions.InternetMessageHeader;
-import com.microsoft.graph.models.extensions.Message;
-import com.microsoft.graph.requests.extensions.IAttachmentCollectionPage;
-import com.microsoft.graph.requests.extensions.IAttachmentRequest;
-import com.microsoft.graph.requests.extensions.IMessageCollectionPage;
+import com.microsoft.graph.models.Attachment;
+import com.microsoft.graph.models.FileAttachment;
+import com.microsoft.graph.models.InternetMessageHeader;
+import com.microsoft.graph.models.Message;
+import com.microsoft.graph.models.Recipient;
+import com.microsoft.graph.requests.AttachmentCollectionPage;
+import com.microsoft.graph.requests.AttachmentRequest;
+import com.microsoft.graph.requests.GraphServiceClient;
+import com.microsoft.graph.requests.MessageCollectionPage;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import javax.mail.BodyPart;
-import javax.mail.internet.MimeMultipart;
-import javax.mail.util.ByteArrayDataSource;
-import javax.validation.constraints.NotBlank;
-import java.io.ByteArrayInputStream;
-import java.util.Base64;
-
-import static java.nio.charset.StandardCharsets.US_ASCII;
 
 /**
- * Implementation of an email consumer that is geared towards Microsoft
- * Office 365, using their Graph API and OAuth2.
+ * Implementation of an email consumer that is geared towards Microsoft Office 365, using their Graph API and OAuth2.
  *
  * @config azure-office-365-mail-consumer
  */
@@ -61,8 +70,7 @@ import static java.nio.charset.StandardCharsets.US_ASCII;
 @AdapterComponent
 @ComponentProfile(summary = "Pickup email from a Microsoft Office 365 account using the Microsoft Graph API", tag = "consumer,email,o365,microsoft,office,outlook,365")
 @DisplayOrder(order = { "username", "delete" })
-public class O365MailConsumer extends AdaptrisPollingConsumer
-{
+public class O365MailConsumer extends AdaptrisPollingConsumer {
   static final String DEFAULT_FOLDER = "inbox";
 
   static final String DEFAULT_FILTER = "isRead eq false";
@@ -100,8 +108,8 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
   /**
    * How to filter the messages.
    *
-   * The default filter is 'isRead eq false'. See https://docs.microsoft.com/en-us/graph/query-parameters#filter-parameter
-   * for further filter parameters.
+   * The default filter is 'isRead eq false'. See https://docs.microsoft.com/en-us/graph/query-parameters#filter-parameter for further
+   * filter parameters.
    */
   @Getter
   @Setter
@@ -110,13 +118,11 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
   @InputFieldDefault(DEFAULT_FILTER)
   private String filter;
 
-
   /**
    * {@inheritDoc}.
    */
   @Override
-  protected void prepareConsumer()
-  {
+  protected void prepareConsumer() {
     /* do nothing */
   }
 
@@ -126,90 +132,49 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
    * @return The number of new emails received.
    */
   @Override
-  protected int processMessages()
-  {
+  protected int processMessages() {
     log.debug("Polling for mail in Office365 as user " + username);
 
     int count = 0;
-    try
-    {
+    try {
       GraphAPIConnection connection = retrieveConnection(GraphAPIConnection.class);
-      IGraphServiceClient graphClient = connection.getClientConnection();
+      GraphServiceClient<?> graphClient = connection.getClientConnection();
 
-      // TODO Allow the end user to choose the folder and filter themselves
-      IMessageCollectionPage messages = graphClient.users(username).mailFolders(folder()).messages().buildRequest().filter(filter()).get();
+      MessageCollectionPage messages = graphClient.users(username).mailFolders(folder()).messages().buildRequest().filter(filter()).get();
 
       // TODO handle multiple pages...
-      log.debug("Found {} messages", messages.getCurrentPage().size());
-      for (Message outlookMessage : messages.getCurrentPage())
-      {
-        String id = outlookMessage.id;
-        AdaptrisMessage adaptrisMessage = getMessageFactory().newMessage(outlookMessage.body.content);
+      List<Message> currentPage = messages.getCurrentPage();
+      log.debug("Found {} messages", currentPage.size());
 
-        if (adaptrisMessage instanceof MultiPayloadAdaptrisMessage)
-        {
-          ((MultiPayloadAdaptrisMessage)adaptrisMessage).setCurrentPayloadId(id);
+      for (Message outlookMessage : currentPage) {
+        String id = outlookMessage.id;
+        AdaptrisMessage adaptrisMessage = decode(
+            outlookMessage.body.content.getBytes(charset()));
+
+        if (adaptrisMessage instanceof MultiPayloadAdaptrisMessage) {
+          ((MultiPayloadAdaptrisMessage) adaptrisMessage).setCurrentPayloadId(id);
         }
-        adaptrisMessage.addMetadata("EmailID", id);
-        adaptrisMessage.addMetadata("Subject", outlookMessage.subject);
-        adaptrisMessage.addMetadata("To", outlookMessage.toRecipients.stream().map(r -> r.emailAddress.address).reduce((a, b) -> a + "," + b).get() );
-        adaptrisMessage.addMetadata("From", outlookMessage.from.emailAddress.address);
-        adaptrisMessage.addMetadata("CC", String.join(",", outlookMessage.ccRecipients.stream().map(r -> r.emailAddress.address).toArray(String[]::new)));
+
+        addMessageMetadata(outlookMessage, id, adaptrisMessage);
 
         log.debug("Processing email from {}: {}", outlookMessage.from.emailAddress.address, outlookMessage.subject);
 
-        if (adaptrisMessage instanceof MultiPayloadAdaptrisMessage && outlookMessage.hasAttachments)
-        {
-          MultiPayloadAdaptrisMessage multiPayloadAdaptrisMessage = (MultiPayloadAdaptrisMessage)adaptrisMessage;
-          IAttachmentCollectionPage attachments = graphClient.users(username).messages(id).attachments().buildRequest().get();
-          log.debug("Message has {} attachments", attachments.getCurrentPage().size());
-          for (Attachment reference : attachments.getCurrentPage())
-          {
-            log.debug("Attachment {} is of type {} with size {}", reference.name, reference.oDataType, reference.size);
-            IAttachmentRequest request = graphClient.users(username).messages(id).attachments(reference.id).buildRequest();//new QueryOption("value", ""));
-            log.debug("URL: {}", request.getRequestUrl());
-            Attachment attachment = request.get();
-            if (attachment instanceof FileAttachment)
-            {
-              FileAttachment file = (FileAttachment)attachment;
-              log.debug("File {} :: {} :: {}", file.name, file.contentType, file.size);
-              if (file.contentType.startsWith("multipart"))
-              {
-                MimeMultipart mimeMultipart = new MimeMultipart(new ByteArrayDataSource(file.contentBytes, file.contentType));
-                parseMimeMultiPart(multiPayloadAdaptrisMessage, mimeMultipart);
-              }
-              else
-              {
-                addAttachmentToAdaptrisMessage(multiPayloadAdaptrisMessage, file.name, file.contentBytes);
-              }
-            }
-          }
-          multiPayloadAdaptrisMessage.switchPayload(id);
+        if (adaptrisMessage instanceof MultiPayloadAdaptrisMessage && outlookMessage.hasAttachments) {
+          processMultiPayload(graphClient, outlookMessage, id, adaptrisMessage);
         }
 
         /*
          * The internetMessageHeaders need to be requested explicitly with a SELECT.
          */
-        outlookMessage = graphClient.users(username).messages(id).buildRequest().select("internetMessageHeaders").get();
-        if (outlookMessage.internetMessageHeaders != null)
-        {
-          for (InternetMessageHeader header : outlookMessage.internetMessageHeaders)
-          {
-            adaptrisMessage.addMetadata(header.name, header.value);
-          }
-        }
+        outlookMessage = processInternetMessageHeaders(graphClient, id, adaptrisMessage);
 
         retrieveAdaptrisMessageListener().onAdaptrisMessage(adaptrisMessage);
 
-        if (delete())
-        {
+        if (delete()) {
           graphClient.users(username).messages(id).buildRequest().delete();
-        }
-        else
-        {
+        } else {
           /*
-           * With PATCH, only send what we've changed, in this instance
-           * we're marking the mail as read.
+           * With PATCH, only send what we've changed, in this instance we're marking the mail as read.
            */
           outlookMessage = new Message();
           outlookMessage.isRead = true;
@@ -219,90 +184,121 @@ public class O365MailConsumer extends AdaptrisPollingConsumer
         count++;
       }
 
-    }
-    catch (Throwable e)
-    {
+    } catch (Throwable e) {
       log.error("Exception processing Outlook message", e);
     }
 
     return count;
   }
 
+  private Message processInternetMessageHeaders(GraphServiceClient<?> graphClient, String id, AdaptrisMessage adaptrisMessage) {
+    Message outlookMessage;
+    outlookMessage = graphClient.users(username).messages(id).buildRequest().select("internetMessageHeaders").get();
+    if (outlookMessage.internetMessageHeaders != null) {
+      for (InternetMessageHeader header : outlookMessage.internetMessageHeaders) {
+        adaptrisMessage.addMetadata(header.name, header.value);
+      }
+    }
+    return outlookMessage;
+  }
+
+  private void processMultiPayload(GraphServiceClient<?> graphClient, Message outlookMessage, String id, AdaptrisMessage adaptrisMessage)
+      throws MessagingException, Exception {
+
+    MultiPayloadAdaptrisMessage multiPayloadAdaptrisMessage = (MultiPayloadAdaptrisMessage) adaptrisMessage;
+    AttachmentCollectionPage attachments = graphClient.users(username).messages(id).attachments().buildRequest().get();
+    log.debug("Message has {} attachments", attachments.getCurrentPage().size());
+    for (Attachment reference : attachments.getCurrentPage()) {
+      log.debug("Attachment {} is of type {} with size {}", reference.name, reference.oDataType, reference.size);
+      AttachmentRequest request = graphClient.users(username).messages(id).attachments(reference.id).buildRequest();// new
+      // QueryOption("value",
+      // ""));
+      log.debug("URL: {}", request.getRequestUrl());
+      Attachment attachment = request.get();
+      if (attachment instanceof FileAttachment) {
+        FileAttachment file = (FileAttachment) attachment;
+        log.debug("File {} :: {} :: {}", file.name, file.contentType, file.size);
+        if (file.contentType.startsWith("multipart")) {
+          MimeMultipart mimeMultipart = new MimeMultipart(new ByteArrayDataSource(file.contentBytes, file.contentType));
+          parseMimeMultiPart(multiPayloadAdaptrisMessage, mimeMultipart);
+        } else {
+          addAttachmentToAdaptrisMessage(multiPayloadAdaptrisMessage, file.name, file.contentBytes);
+        }
+      }
+    }
+    multiPayloadAdaptrisMessage.switchPayload(id);
+  }
+
+  private void addMessageMetadata(Message outlookMessage, String id, AdaptrisMessage adaptrisMessage) {
+    adaptrisMessage.addMetadata("EmailID", id);
+    adaptrisMessage.addMetadata("Subject", outlookMessage.subject);
+    adaptrisMessage.addMetadata("To", joinEmailAddresses(outlookMessage.toRecipients));
+    adaptrisMessage.addMetadata("From", outlookMessage.from.emailAddress.address);
+    adaptrisMessage.addMetadata("CC", joinEmailAddresses(outlookMessage.ccRecipients));
+    adaptrisMessage.addMetadata("BCC", joinEmailAddresses(outlookMessage.bccRecipients));
+  }
+
+  private String joinEmailAddresses(List<Recipient> recipients) {
+    return CollectionUtils.emptyIfNull(recipients).stream().map(r -> r.emailAddress.address).collect(Collectors.joining(","));
+  }
+
+  private String charset() {
+    return StringUtils.defaultIfBlank(defaultIfNull(getMessageFactory()).getDefaultCharEncoding(), Charset.defaultCharset().name());
+  }
+
   /**
    * {@inheritDoc}.
    */
   @Override
-  protected String newThreadName()
-  {
+  protected String newThreadName() {
     return DestinationHelper.threadName(retrieveAdaptrisMessageListener(), null);
   }
 
-  private boolean delete()
-  {
+  private boolean delete() {
     return BooleanUtils.toBooleanDefaultIfNull(delete, false);
   }
 
-  private String folder()
-  {
+  private String folder() {
     return StringUtils.defaultString(folder, DEFAULT_FOLDER);
   }
 
-  private String filter()
-  {
+  private String filter() {
     return StringUtils.defaultString(filter, DEFAULT_FILTER);
   }
 
-  private void addAttachmentToAdaptrisMessage(MultiPayloadAdaptrisMessage message, String name, byte[] attachment)
-  {
-    try
-    {
+  private void addAttachmentToAdaptrisMessage(MultiPayloadAdaptrisMessage message, String name, byte[] attachment) {
+    try {
       /*
-       * The Graph API documentation says that contentBytes
-       * is Base64 encoded, but that doesn't always appear to
-       * be the case
+       * The Graph API documentation says that contentBytes is Base64 encoded, but that doesn't always appear to be the case
        */
       attachment = Base64.getDecoder().decode(attachment);
-    }
-    catch (Exception e)
-    {
-      // do nothing; content wasn't base64 encoded
+    } catch (Exception e) {
+      // Do nothing; content wasn't base64 encoded
     }
     message.addPayload(name, attachment);
   }
 
-  private void parseMimeMultiPart(MultiPayloadAdaptrisMessage message, MimeMultipart mimeMultipart) throws Exception
-  {
-    for (int i = 0; i < mimeMultipart.getCount(); i++)
-    {
+  private void parseMimeMultiPart(MultiPayloadAdaptrisMessage message, MimeMultipart mimeMultipart) throws Exception {
+    for (int i = 0; i < mimeMultipart.getCount(); i++) {
       BodyPart bodyPart = mimeMultipart.getBodyPart(i);
       String name = bodyPart.getFileName();
       Object content = bodyPart.getContent();
-      if (content instanceof MimeMultipart)
-      {
-        parseMimeMultiPart(message, (MimeMultipart)content);
-      }
-      else if (name == null)
-      {
-        // do nothing; this is the email body
-      }
-      else
-      {
+      if (content instanceof MimeMultipart) {
+        parseMimeMultiPart(message, (MimeMultipart) content);
+      } else if (name == null) {
+        // Do nothing; this is the email body
+      } else {
         byte[] bytes = null;
-        if (content instanceof ByteArrayInputStream)
-        {
-          bytes = IOUtils.toByteArray((ByteArrayInputStream)content);
-        }
-        else if (content instanceof String)
-        {
-          bytes = ((String)content).getBytes(US_ASCII); // MIME encoded emails are always 7bit ASCII right??
-        }
-        else
-        {
+        if (content instanceof ByteArrayInputStream) {
+          bytes = IOUtils.toByteArray((ByteArrayInputStream) content);
+        } else if (content instanceof String) {
+          bytes = ((String) content).getBytes(US_ASCII); // MIME encoded emails are always 7bit ASCII right??
+        } else {
           log.warn("Unsupported MIME part {}", bodyPart.getContentType());
         }
         addAttachmentToAdaptrisMessage(message, name, bytes);
       }
     }
   }
-}
 
+}
