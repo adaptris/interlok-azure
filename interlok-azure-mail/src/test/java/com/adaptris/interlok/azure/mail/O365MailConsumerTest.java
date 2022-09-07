@@ -2,6 +2,7 @@ package com.adaptris.interlok.azure.mail;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -153,7 +154,7 @@ public class O365MailConsumerTest extends ExampleConsumerCase {
       MessageCollectionRequestBuilder messageCollectionRequestBuilder = mock(MessageCollectionRequestBuilder.class);
       when(mailRequestBuilder.messages()).thenReturn(messageCollectionRequestBuilder);
       MessageCollectionRequest messageCollectionRequest = mock(MessageCollectionRequest.class);
-      when(messageCollectionRequestBuilder.buildRequest()).thenReturn(messageCollectionRequest);
+      when(messageCollectionRequestBuilder.buildRequest(anyList())).thenReturn(messageCollectionRequest);
       when(messageCollectionRequest.filter(O365MailConsumer.DEFAULT_FILTER)).thenReturn(messageCollectionRequest);
       MessageCollectionPage messageResponse = mock(MessageCollectionPage.class);
       when(messageCollectionRequest.get()).thenReturn(messageResponse);
