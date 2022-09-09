@@ -22,6 +22,7 @@ import static java.nio.charset.StandardCharsets.US_ASCII;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.Charset;
 import java.util.Base64;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,6 +53,9 @@ import com.microsoft.graph.models.FileAttachment;
 import com.microsoft.graph.models.InternetMessageHeader;
 import com.microsoft.graph.models.Message;
 import com.microsoft.graph.models.Recipient;
+import com.microsoft.graph.options.HeaderOption;
+import com.microsoft.graph.options.Option;
+import com.microsoft.graph.options.QueryOption;
 import com.microsoft.graph.requests.AttachmentCollectionPage;
 import com.microsoft.graph.requests.AttachmentRequest;
 import com.microsoft.graph.requests.GraphServiceClient;
@@ -71,8 +75,13 @@ import lombok.Setter;
 @ComponentProfile(summary = "Pickup email from a Microsoft Office 365 account using the Microsoft Graph API", tag = "consumer,email,o365,microsoft,office,outlook,365")
 @DisplayOrder(order = { "username", "delete" })
 public class O365MailConsumer extends AdaptrisPollingConsumer {
-  static final String DEFAULT_FOLDER = "inbox";
 
+
+  static final String CONSISTENCY_LEVEL_OPTION = "ConsistencyLevel";
+  static final String FILTER_OPTION = "$filter";
+  static final String SEARCH_OPTION = "$search";
+
+  static final String DEFAULT_FOLDER = "inbox";
   static final String DEFAULT_FILTER = "isRead eq false";
 
   /**
@@ -109,14 +118,27 @@ public class O365MailConsumer extends AdaptrisPollingConsumer {
    * How to filter the messages.
    *
    * The default filter is 'isRead eq false'. See https://docs.microsoft.com/en-us/graph/query-parameters#filter-parameter for further
+   * filter parameters. Filter and search cannot be used at the same time.
+   */
+  @Getter
+  @Setter
+  @AdvancedConfig
+  @InputFieldHint(friendly = "How to filter the emails (see https://docs.microsoft.com/en-us/graph/query-parameters#filter-parameter).")
+  @InputFieldDefault(DEFAULT_FILTER)
+  private String filter;
+
+  /**
+   * You can search messages based on a value in specific message properties. If you do a search on messages and specify only a value
+   * without specific message properties, the search is carried out on the default search properties of from, subject, and body. Filter and
+   * search cannot be used at the same time. When search is used filter is ignored.
+   *
    * filter parameters.
    */
   @Getter
   @Setter
-  @AdvancedConfig(rare = true)
-  @InputFieldHint(friendly = "How to filter the emails (see https://docs.microsoft.com/en-us/graph/query-parameters#filter-parameter).")
-  @InputFieldDefault(DEFAULT_FILTER)
-  private String filter;
+  @AdvancedConfig
+  @InputFieldHint(friendly = "Search emails based on a value in specific message properties (see https://docs.microsoft.com/en-us/graph/search-query-parameter).")
+  private String search;
 
   /**
    * {@inheritDoc}.
@@ -140,7 +162,7 @@ public class O365MailConsumer extends AdaptrisPollingConsumer {
       GraphAPIConnection connection = retrieveConnection(GraphAPIConnection.class);
       GraphServiceClient<?> graphClient = connection.getClientConnection();
 
-      MessageCollectionPage messages = graphClient.users(username).mailFolders(folder()).messages().buildRequest().filter(filter()).get();
+      MessageCollectionPage messages = graphClient.users(username).mailFolders(folder()).messages().buildRequest(queryOptions()).get();
 
       // TODO handle multiple pages...
       List<Message> currentPage = messages.getCurrentPage();
@@ -242,6 +264,18 @@ public class O365MailConsumer extends AdaptrisPollingConsumer {
     return CollectionUtils.emptyIfNull(recipients).stream().map(r -> r.emailAddress.address).collect(Collectors.joining(","));
   }
 
+  List<Option> queryOptions() {
+    LinkedList<Option> options = new LinkedList<>();
+    if (StringUtils.isNotBlank(search)) {
+      // This request requires the ConsistencyLevel header set to eventual to use $search
+      options.add(new HeaderOption(CONSISTENCY_LEVEL_OPTION, "eventual"));
+      options.add(new QueryOption(SEARCH_OPTION, search()));
+    } else {
+      options.add(new QueryOption(FILTER_OPTION, filter()));
+    }
+    return options;
+  }
+
   private String charset() {
     return StringUtils.defaultIfBlank(defaultIfNull(getMessageFactory()).getDefaultCharEncoding(), Charset.defaultCharset().name());
   }
@@ -264,6 +298,10 @@ public class O365MailConsumer extends AdaptrisPollingConsumer {
 
   private String filter() {
     return StringUtils.defaultString(filter, DEFAULT_FILTER);
+  }
+
+  private String search() {
+    return StringUtils.wrap(search, "\"");
   }
 
   private void addAttachmentToAdaptrisMessage(MultiPayloadAdaptrisMessage message, String name, byte[] attachment) {

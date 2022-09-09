@@ -2,6 +2,7 @@ package com.adaptris.interlok.azure.mail;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -106,6 +107,32 @@ public class O365MailConsumerTest extends ExampleConsumerCase {
   }
 
   @Test
+  public void testLiveConsumerWithSearch() throws Exception {
+    Assume.assumeTrue(liveTests);
+
+    MockMessageListener mockMessageListener = new MockMessageListener(10);
+    consumer.setSearch("subject:A subject");
+    StandaloneConsumer standaloneConsumer = new StandaloneConsumer(connection, consumer);
+    standaloneConsumer.registerAdaptrisMessageListener(mockMessageListener);
+    try {
+      LifecycleHelper.init(standaloneConsumer);
+      LifecycleHelper.prepare(standaloneConsumer);
+      LifecycleHelper.start(standaloneConsumer);
+
+      waitForMessages(mockMessageListener, 5, 10000); // Wait until we get five new emails or for 10 seconds
+
+      List<AdaptrisMessage> messages = mockMessageListener.getMessages();
+
+      System.out.println("Found " + messages.size() + " emails");
+      Thread.sleep(5000); // Sleep for 5 seconds, otherwise the Graph SDK complains we disconnected while waiting for a response
+    } catch (InterruptedIOException | InterruptedException e) {
+      // Ignore these as they're occasionally thrown by the Graph SDK when the connection is closed while it's still processing
+    } finally {
+      stop(standaloneConsumer);
+    }
+  }
+
+  @Test
   public void testMockConsumer() throws Exception {
     Assume.assumeFalse(liveTests);
 
@@ -127,7 +154,7 @@ public class O365MailConsumerTest extends ExampleConsumerCase {
       MessageCollectionRequestBuilder messageCollectionRequestBuilder = mock(MessageCollectionRequestBuilder.class);
       when(mailRequestBuilder.messages()).thenReturn(messageCollectionRequestBuilder);
       MessageCollectionRequest messageCollectionRequest = mock(MessageCollectionRequest.class);
-      when(messageCollectionRequestBuilder.buildRequest()).thenReturn(messageCollectionRequest);
+      when(messageCollectionRequestBuilder.buildRequest(anyList())).thenReturn(messageCollectionRequest);
       when(messageCollectionRequest.filter(O365MailConsumer.DEFAULT_FILTER)).thenReturn(messageCollectionRequest);
       MessageCollectionPage messageResponse = mock(MessageCollectionPage.class);
       when(messageCollectionRequest.get()).thenReturn(messageResponse);
@@ -171,6 +198,27 @@ public class O365MailConsumerTest extends ExampleConsumerCase {
     } finally {
       stop(standaloneConsumer);
     }
+  }
+
+  @Test
+  public void testQueryOptionWithSearch() throws Exception {
+    O365MailConsumer consumer = new O365MailConsumer();
+    consumer.setSearch("subject:\"subject\"");
+
+    assertEquals(2, consumer.queryOptions().size());
+    assertEquals(O365MailConsumer.CONSISTENCY_LEVEL_OPTION, consumer.queryOptions().get(0).getName());
+    assertEquals("eventual", consumer.queryOptions().get(0).getValue());
+    assertEquals(O365MailConsumer.SEARCH_OPTION, consumer.queryOptions().get(1).getName());
+    assertEquals("\"subject:\"subject\"\"", consumer.queryOptions().get(1).getValue());
+  }
+
+  @Test
+  public void testQueryOptionNoSearch() throws Exception {
+    O365MailConsumer consumer = new O365MailConsumer();
+
+    assertEquals(1, consumer.queryOptions().size());
+    assertEquals(O365MailConsumer.FILTER_OPTION, consumer.queryOptions().get(0).getName());
+    assertEquals(O365MailConsumer.DEFAULT_FILTER, consumer.queryOptions().get(0).getValue());
   }
 
   @Override
