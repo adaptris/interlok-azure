@@ -47,6 +47,7 @@ dependencies {
 
   api ("org.codehaus.woodstox:stax2-api:4.2.1")
   api ("org.codehaus.staxmate:stax2:2.1")
+  api ("org.codehaus.woodstox:stax2-api:4.2.1")
   api ("com.google.guava:guava:31.1-jre")
   // azure-core via azure-identity has an explicit dependency on these jars,
   // so we need to pin the right version
