@@ -1,5 +1,6 @@
 package com.adaptris.interlok.azure.mail;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -11,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.InterruptedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -21,6 +23,7 @@ import org.junit.Test;
 
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.FixedIntervalPoller;
+import com.adaptris.core.MultiPayloadAdaptrisMessage;
 import com.adaptris.core.MultiPayloadMessageFactory;
 import com.adaptris.core.Poller;
 import com.adaptris.core.QuartzCronPoller;
@@ -31,9 +34,13 @@ import com.adaptris.interlok.azure.GraphAPIConnection;
 import com.adaptris.interlok.junit.scaffolding.ExampleConsumerCase;
 import com.adaptris.util.TimeInterval;
 import com.microsoft.graph.models.EmailAddress;
+import com.microsoft.graph.models.FileAttachment;
 import com.microsoft.graph.models.ItemBody;
 import com.microsoft.graph.models.Message;
 import com.microsoft.graph.models.Recipient;
+import com.microsoft.graph.requests.AttachmentCollectionPage;
+import com.microsoft.graph.requests.AttachmentCollectionRequest;
+import com.microsoft.graph.requests.AttachmentCollectionRequestBuilder;
 import com.microsoft.graph.requests.GraphServiceClient;
 import com.microsoft.graph.requests.MailFolderRequestBuilder;
 import com.microsoft.graph.requests.MessageCollectionPage;
@@ -195,6 +202,94 @@ public class O365MailConsumerTest extends ExampleConsumerCase {
 
       assertEquals(1, messages.size());
       assertEquals(MESSAGE, messages.get(0).getContent());
+    } finally {
+      stop(standaloneConsumer);
+    }
+  }
+
+  @Test
+  public void testMockConsumerWithAttachment() throws Exception {
+    Assume.assumeFalse(liveTests);
+
+    connection = mock(GraphAPIConnection.class);
+    consumer.registerConnection(connection);
+
+    MockMessageListener mockMessageListener = new MockMessageListener(10);
+    StandaloneConsumer standaloneConsumer = new StandaloneConsumer(connection, consumer);
+    standaloneConsumer.registerAdaptrisMessageListener(mockMessageListener);
+    try {
+      when(connection.retrieveConnection(any())).thenReturn(connection);
+
+      GraphServiceClient client = mock(GraphServiceClient.class);
+      when(connection.getClientConnection()).thenReturn(client);
+      UserRequestBuilder userRequestBuilder = mock(UserRequestBuilder.class);
+      when(client.users(USERNAME)).thenReturn(userRequestBuilder);
+      MailFolderRequestBuilder mailRequestBuilder = mock(MailFolderRequestBuilder.class);
+      when(userRequestBuilder.mailFolders(O365MailConsumer.DEFAULT_FOLDER)).thenReturn(mailRequestBuilder);
+      MessageCollectionRequestBuilder messageCollectionRequestBuilder = mock(MessageCollectionRequestBuilder.class);
+      when(mailRequestBuilder.messages()).thenReturn(messageCollectionRequestBuilder);
+      MessageCollectionRequest messageCollectionRequest = mock(MessageCollectionRequest.class);
+      when(messageCollectionRequestBuilder.buildRequest(anyList())).thenReturn(messageCollectionRequest);
+      when(messageCollectionRequest.filter(O365MailConsumer.DEFAULT_FILTER)).thenReturn(messageCollectionRequest);
+      MessageCollectionPage messageResponse = mock(MessageCollectionPage.class);
+      when(messageCollectionRequest.get()).thenReturn(messageResponse);
+      Message message = new Message();
+      message.id = "7cbd04e3e8be1a706b19377ba82bd6b4";
+      ItemBody body = new ItemBody();
+      body.content = MESSAGE;
+      message.body = body;
+      message.subject = SUBJECT;
+      Recipient recipient = new Recipient();
+      EmailAddress emailAddress = new EmailAddress();
+      emailAddress.address = "recipient@example.com";
+      recipient.emailAddress = emailAddress;
+      message.toRecipients = Arrays.asList(recipient);
+      Recipient sender = new Recipient();
+      emailAddress = new EmailAddress();
+      emailAddress.address = "sender@example.com";
+      sender.emailAddress = emailAddress;
+      message.from = sender;
+      message.ccRecipients = new ArrayList<>();
+      message.hasAttachments = true;
+      when(messageResponse.getCurrentPage()).thenReturn(Arrays.asList(message));
+
+      MessageRequestBuilder messageRequestBuilder = mock(MessageRequestBuilder.class);
+      when(userRequestBuilder.messages(anyString())).thenReturn(messageRequestBuilder);
+      MessageRequest messageRequest = mock(MessageRequest.class);
+      when(messageRequestBuilder.buildRequest()).thenReturn(messageRequest);
+      when(messageRequest.select(anyString())).thenReturn(messageRequest);
+      when(messageRequest.get()).thenReturn(message);
+
+      AttachmentCollectionRequestBuilder attachmentCollectionRequestBuilder = mock(AttachmentCollectionRequestBuilder.class);
+      when(messageRequestBuilder.attachments()).thenReturn(attachmentCollectionRequestBuilder);
+      AttachmentCollectionRequest attachmentCollectionRequest = mock(AttachmentCollectionRequest.class);
+      when(attachmentCollectionRequestBuilder.buildRequest()).thenReturn(attachmentCollectionRequest);
+      AttachmentCollectionPage attachmentCollectionPage = mock(AttachmentCollectionPage.class);
+      when(attachmentCollectionRequest.get()).thenReturn(attachmentCollectionPage);
+
+      byte[] contentBytes = "content".getBytes();
+      FileAttachment attachment = new FileAttachment();
+      attachment.oDataType = "#microsoft.graph.fileAttachment";
+      attachment.name = "filename.txt";
+      attachment.contentType = "text/plain";
+      attachment.size = contentBytes.length;
+      attachment.contentBytes = Base64.getEncoder().encode(contentBytes);
+      when(attachmentCollectionPage.getCurrentPage()).thenReturn(Arrays.asList(attachment));
+
+      LifecycleHelper.init(standaloneConsumer);
+      LifecycleHelper.prepare(standaloneConsumer);
+      LifecycleHelper.start(standaloneConsumer);
+
+      waitForMessages(mockMessageListener, 1, 1000);
+
+      List<AdaptrisMessage> messages = mockMessageListener.getMessages();
+
+      assertEquals(1, messages.size());
+      MultiPayloadAdaptrisMessage multiPayloadMessage = (MultiPayloadAdaptrisMessage) messages.get(0);
+      assertEquals(MESSAGE, multiPayloadMessage.getContent());
+      assertEquals(2, multiPayloadMessage.getPayloadCount());
+      assertArrayEquals(contentBytes, multiPayloadMessage.getPayload("filename.txt"));
+      assertEquals("content", new String(multiPayloadMessage.getPayload("filename.txt"), multiPayloadMessage.getContentEncoding()));
     } finally {
       stop(standaloneConsumer);
     }
