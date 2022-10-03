@@ -57,7 +57,6 @@ import com.microsoft.graph.options.HeaderOption;
 import com.microsoft.graph.options.Option;
 import com.microsoft.graph.options.QueryOption;
 import com.microsoft.graph.requests.AttachmentCollectionPage;
-import com.microsoft.graph.requests.AttachmentRequest;
 import com.microsoft.graph.requests.GraphServiceClient;
 import com.microsoft.graph.requests.MessageCollectionPage;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -66,7 +65,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Implementation of an email consumer that is geared towards Microsoft Office 365, using their Graph API and OAuth2.
+ * Implementation of an email consumer that is geared towards Microsoft Office 365, using their Graph API and OAuth2. In 3.12.0.1 this
+ * service adds a metadata 'emailpayloadtype' for each payload with a value of 'payload' or 'attachment'. It also adds extra metadata
+ * 'emailattachmentfilename', 'emailattachmentcontenttype', 'emailattachmentsize' for each attachments. This new behaviour will also be
+ * added to 4.6.0.
  *
  * @config azure-office-365-mail-consumer
  */
@@ -175,6 +177,8 @@ public class O365MailConsumer extends AdaptrisPollingConsumer {
 
         if (adaptrisMessage instanceof MultiPayloadAdaptrisMessage) {
           ((MultiPayloadAdaptrisMessage) adaptrisMessage).setCurrentPayloadId(id);
+          new MultiPayloadAdaptrisMessageWrapper((MultiPayloadAdaptrisMessage) adaptrisMessage)
+          .addPayloadMessageHeader(EmailConstants.EMAIL_PAYLOAD_TYPE, EmailConstants.EMAIL_PAYLOAD_TYPE_PAYLOAD);
         }
 
         addMessageMetadata(outlookMessage, id, adaptrisMessage);
@@ -182,7 +186,7 @@ public class O365MailConsumer extends AdaptrisPollingConsumer {
         log.debug("Processing email from {}: {}", outlookMessage.from.emailAddress.address, outlookMessage.subject);
 
         if (adaptrisMessage instanceof MultiPayloadAdaptrisMessage && outlookMessage.hasAttachments) {
-          processMultiPayload(graphClient, outlookMessage, id, adaptrisMessage);
+          processMultiPayload(graphClient, outlookMessage, id, (MultiPayloadAdaptrisMessage) adaptrisMessage);
         }
 
         /*
@@ -224,19 +228,16 @@ public class O365MailConsumer extends AdaptrisPollingConsumer {
     return outlookMessage;
   }
 
-  private void processMultiPayload(GraphServiceClient<?> graphClient, Message outlookMessage, String id, AdaptrisMessage adaptrisMessage)
+  private void processMultiPayload(GraphServiceClient<?> graphClient, Message outlookMessage, String id, MultiPayloadAdaptrisMessage multiPayloadAdaptrisMessage)
       throws MessagingException, Exception {
 
-    MultiPayloadAdaptrisMessage multiPayloadAdaptrisMessage = (MultiPayloadAdaptrisMessage) adaptrisMessage;
     AttachmentCollectionPage attachments = graphClient.users(username).messages(id).attachments().buildRequest().get();
     log.debug("Message has {} attachments", attachments.getCurrentPage().size());
-    for (Attachment reference : attachments.getCurrentPage()) {
-      log.debug("Attachment {} is of type {} with size {}", reference.name, reference.oDataType, reference.size);
-      AttachmentRequest request = graphClient.users(username).messages(id).attachments(reference.id).buildRequest();// new
-      // QueryOption("value",
-      // ""));
-      log.debug("URL: {}", request.getRequestUrl());
-      Attachment attachment = request.get();
+    for (Attachment attachment : attachments.getCurrentPage()) {
+      log.debug("Attachment {} is of type {} with size {}", attachment.name, attachment.oDataType, attachment.size);
+      // AttachmentRequest request = graphClient.users(username).messages(id).attachments(reference.id).buildRequest();
+      // log.debug("URL: {}", request.getRequestUrl());
+      // Attachment attachment = request.get();
       if (attachment instanceof FileAttachment) {
         FileAttachment file = (FileAttachment) attachment;
         log.debug("File {} :: {} :: {}", file.name, file.contentType, file.size);
@@ -244,7 +245,7 @@ public class O365MailConsumer extends AdaptrisPollingConsumer {
           MimeMultipart mimeMultipart = new MimeMultipart(new ByteArrayDataSource(file.contentBytes, file.contentType));
           parseMimeMultiPart(multiPayloadAdaptrisMessage, mimeMultipart);
         } else {
-          addAttachmentToAdaptrisMessage(multiPayloadAdaptrisMessage, file.name, file.contentBytes);
+          addAttachmentToAdaptrisMessage(multiPayloadAdaptrisMessage, file.name, file.contentBytes, file.contentType, file.size);
         }
       }
     }
@@ -304,7 +305,9 @@ public class O365MailConsumer extends AdaptrisPollingConsumer {
     return StringUtils.wrap(search, "\"");
   }
 
-  private void addAttachmentToAdaptrisMessage(MultiPayloadAdaptrisMessage message, String name, byte[] attachment) {
+  private void addAttachmentToAdaptrisMessage(MultiPayloadAdaptrisMessage message, String name, byte[] attachment,
+      String contentType,
+      int size) {
     try {
       /*
        * The Graph API documentation says that contentBytes is Base64 encoded, but that doesn't always appear to be the case
@@ -313,6 +316,13 @@ public class O365MailConsumer extends AdaptrisPollingConsumer {
     } catch (Exception e) {
       // Do nothing; content wasn't base64 encoded
     }
+
+    MultiPayloadAdaptrisMessageWrapper messageWrapper = new MultiPayloadAdaptrisMessageWrapper(message);
+    messageWrapper.addPayloadMessageHeader(name, EmailConstants.EMAIL_PAYLOAD_TYPE, EmailConstants.EMAIL_PAYLOAD_TYPE_ATTACHMENT);
+    messageWrapper.addPayloadMessageHeader(name, EmailConstants.EMAIL_ATTACH_FILENAME, name);
+    messageWrapper.addPayloadMessageHeader(name, EmailConstants.EMAIL_ATTACH_CONTENT_TYPE, contentType);
+    messageWrapper.addPayloadMessageHeader(name, EmailConstants.EMAIL_ATTACH_SIZE, String.valueOf(size));
+
     message.addPayload(name, attachment);
   }
 
@@ -334,7 +344,7 @@ public class O365MailConsumer extends AdaptrisPollingConsumer {
         } else {
           log.warn("Unsupported MIME part {}", bodyPart.getContentType());
         }
-        addAttachmentToAdaptrisMessage(message, name, bytes);
+        addAttachmentToAdaptrisMessage(message, name, bytes, bodyPart.getContentType(), bodyPart.getSize());
       }
     }
   }
