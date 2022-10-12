@@ -31,7 +31,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @DisplayOrder(order = { "then", "threadCount" })
 public class O365ForEach extends ForEach {
 
-  protected transient Logger log = LoggerFactory.getLogger(this.getClass().getName());
+  private static final transient Logger log = LoggerFactory.getLogger(O365ForEach.class.getName());
 
   private static final String PAYLOAD_ID = "PAYLOAD_ID";
 
