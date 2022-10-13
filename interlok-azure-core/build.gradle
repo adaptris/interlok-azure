@@ -2,19 +2,19 @@ ext {
   componentName = 'Interlok Azure/Common'
   componentDesc = "Common components for interacting with Azure and Office 365"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  jacksonVersion = '2.13.3'
-  nettyVersion = '4.1.80.Final'
+  jacksonVersion = '2.13.4'
+  nettyVersion = '4.1.82.Final'
 }
 
 dependencies {
 
-  api ("com.microsoft.azure:msal4j:1.13.0")
+  api ("com.microsoft.azure:msal4j:1.13.1")
     constraints {
       api("net.minidev:json-smart:2.4.8") {
         because "CVE-2021-27568: Affect json-smart up to (excluding) 2.3.1"
       }
     }
-  api ("com.microsoft.graph:microsoft-graph:5.33.0") {
+  api ("com.microsoft.graph:microsoft-graph:5.36.0") {
     exclude group: "com.google.code.gson", module: "gson"
     exclude group: "com.squareup.okhttp3", module: "okhttp"
   }
@@ -24,14 +24,14 @@ dependencies {
     exclude group: "com.squareup.okio", module: "okio"
   }
   implementation ("com.squareup.okio:okio:3.2.0")
-  api ("com.azure:azure-identity:1.5.4") {
+  api ("com.azure:azure-identity:1.5.5") {
     // Exclude KeePassJava2 dependencies, because we don't care
     // If people want it, then can include it themselves.
     exclude group: "org.linguafranca.pwdb", module: "KeePassJava2"
     exclude group: "org.simpleframework", module: "simple-xml"
     exclude group: "io.netty"
   }
-  api ("com.azure:azure-storage-file-datalake:12.12.0") {
+  api ("com.azure:azure-storage-file-datalake:12.12.1") {
     exclude group: "io.netty"
   }
 
@@ -47,6 +47,7 @@ dependencies {
 
   api ("org.codehaus.woodstox:stax2-api:4.2.1")
   api ("org.codehaus.staxmate:stax2:2.1")
+  api ("org.codehaus.woodstox:stax2-api:4.2.1")
   api ("com.google.guava:guava:31.1-jre")
   // azure-core via azure-identity has an explicit dependency on these jars,
   // so we need to pin the right version
