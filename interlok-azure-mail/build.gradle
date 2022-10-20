@@ -6,6 +6,7 @@ ext {
 
 dependencies {
   api project(':interlok-azure-core')
+  api ("com.adaptris:interlok-mail:$interlokCoreVersion") { changing= true}
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
