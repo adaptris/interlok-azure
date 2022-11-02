@@ -1,17 +1,16 @@
 package com.adaptris.interlok.azure;
 
+import java.util.Collections;
+
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
+import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.CoreException;
-import com.microsoft.aad.msal4j.ClientCredentialFactory;
-import com.microsoft.aad.msal4j.ClientCredentialParameters;
-import com.microsoft.aad.msal4j.ConfidentialClientApplication;
-import com.microsoft.aad.msal4j.IAuthenticationResult;
-import com.microsoft.graph.models.extensions.IGraphServiceClient;
-import com.microsoft.graph.requests.extensions.GraphServiceClient;
+import com.azure.identity.ClientSecretCredential;
+import com.azure.identity.ClientSecretCredentialBuilder;
+import com.microsoft.graph.authentication.TokenCredentialAuthProvider;
+import com.microsoft.graph.requests.GraphServiceClient;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-
-import java.util.Collections;
 
 /**
  * Azure connection to use the Graph API.
@@ -19,60 +18,38 @@ import java.util.Collections;
 @XStreamAlias("azure-graph-api-connection")
 @AdapterComponent
 @ComponentProfile(summary = "Connect to an Azure tenant and access the Graph API", tag = "connections,azure,graph api,graph")
-public class GraphAPIConnection extends AzureConnection<IGraphServiceClient>
-{
+@DisplayOrder(order = { "applicationId", "tenantId", "clientSecret" })
+public class GraphAPIConnection extends AzureConnection<GraphServiceClient<?>> {
+
+  // TODO Should we let the user the ability to change the scope?
   private static final String SCOPE = "https://graph.microsoft.com/.default";
 
-  private transient ConfidentialClientApplication confidentialClientApplication;
+  private transient TokenCredentialAuthProvider tokenCredentialAuthProvider;
+  private transient GraphServiceClient<?> clientConnection;
 
-  private transient String accessToken;
-
-  /**
-   * Initialise the underlying connection.
-   *
-   * @throws CoreException wrapping any exception.
-   */
   @Override
-  protected void initConnection() throws CoreException
-  {
-    try
-    {
-      confidentialClientApplication = ConfidentialClientApplication.builder(applicationId,
-          ClientCredentialFactory.createFromSecret(clientSecret()))
-          .authority(tenant())
+  protected void initConnection() throws CoreException {
+    try {
+      ClientSecretCredential clientSecretCredential = new ClientSecretCredentialBuilder()
+          .clientId(applicationId)
+          .clientSecret(clientSecret())
+          .tenantId(getTenantId())
           .build();
-    }
-    catch (Exception e)
-    {
+      tokenCredentialAuthProvider = new TokenCredentialAuthProvider(Collections.singletonList(SCOPE), clientSecretCredential);
+    } catch (Exception e) {
       log.error("Could not identify Azure application or tenant", e);
       throw new CoreException(e);
     }
   }
 
-  /**
-   * Start the underlying connection.
-   *
-   * @throws CoreException wrapping any exception.
-   */
   @Override
-  protected void startConnection() throws CoreException
-  {
-    try
-    {
-      IAuthenticationResult iAuthResult = confidentialClientApplication.acquireToken(ClientCredentialParameters.builder(Collections.singleton(SCOPE)).build()).join();
-      accessToken = iAuthResult.accessToken();
-    }
-    catch (Exception e)
-    {
-      log.error("Could not acquire access token", e);
-      throw new CoreException(e);
-    }
+  protected void startConnection() throws CoreException {
+    clientConnection = GraphServiceClient.builder().authenticationProvider(tokenCredentialAuthProvider).buildClient();
   }
 
   @Override
-  public IGraphServiceClient getClientConnection()
-  {
-    return GraphServiceClient.builder().authenticationProvider(request -> request.addHeader("Authorization", "Bearer " + accessToken)).buildClient();
+  public GraphServiceClient<?> getClientConnection() {
+    return clientConnection;
   }
 
 }

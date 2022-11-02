@@ -1,28 +1,37 @@
 ext {
-  componentName='Interlok Azure/Common'
-  componentDesc="Common components for interacting with Azure and Office 365"
+  componentName = 'Interlok Azure/Common'
+  componentDesc = "Common components for interacting with Azure and Office 365"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  jacksonVersion = "2.13.1"
-  nettyVersion='4.1.73.Final'
+  jacksonVersion = '2.13.4.20221013'
+  nettyVersion = '4.1.84.Final'
 }
 
 dependencies {
 
-  api ("com.microsoft.azure:msal4j:1.11.0")
+  api ("com.microsoft.azure:msal4j:1.13.2")
     constraints {
-      api("net.minidev:json-smart:2.4.7") {
+      api("net.minidev:json-smart:2.4.8") {
         because "CVE-2021-27568: Affect json-smart up to (excluding) 2.3.1"
       }
     }
-  api ("com.microsoft.graph:microsoft-graph:2.5.0")
-  api ("com.azure:azure-identity:1.4.3") {
+  api ("com.microsoft.graph:microsoft-graph:5.36.0") {
+    exclude group: "com.google.code.gson", module: "gson"
+    exclude group: "com.squareup.okhttp3", module: "okhttp"
+  }
+  implementation ("com.google.code.gson:gson:2.9.1")
+  implementation ("com.squareup.okhttp3:okhttp:4.10.0") {
+    exclude group: "com.google.code.gson", module: "gson"
+    exclude group: "com.squareup.okio", module: "okio"
+  }
+  implementation ("com.squareup.okio:okio:3.2.0")
+  api ("com.azure:azure-identity:1.5.5") {
     // Exclude KeePassJava2 dependencies, because we don't care
     // If people want it, then can include it themselves.
     exclude group: "org.linguafranca.pwdb", module: "KeePassJava2"
     exclude group: "org.simpleframework", module: "simple-xml"
     exclude group: "io.netty"
   }
-  api ("com.azure:azure-storage-file-datalake:12.7.3") {
+  api ("com.azure:azure-storage-file-datalake:12.13.0") {
     exclude group: "io.netty"
   }
 
@@ -34,16 +43,21 @@ dependencies {
   implementation ("io.netty:netty-codec:$nettyVersion")
   implementation ("io.netty:netty-codec-http2:$nettyVersion")
   implementation ("io.netty:netty-codec-http:$nettyVersion")
+  implementation ("io.netty:netty-resolver-dns:$nettyVersion")
 
+  api ("org.codehaus.woodstox:stax2-api:4.2.1")
   api ("org.codehaus.staxmate:stax2:2.1")
-  api ("com.google.guava:guava:31.0.1-jre")
+  api ("org.codehaus.woodstox:stax2-api:4.2.1")
+  api ("com.google.guava:guava:31.1-jre")
   // azure-core via azure-identity has an explicit dependency on these jars,
   // so we need to pin the right version
-  api ("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
-  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jacksonVersion")
+  // Dependency to platform/BOM
+  api (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
+  api ("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-xml")
   // should be pulled in by the jackson-datatype/dataformat deps.
-  api ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
-  api ("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
+  api ("com.fasterxml.jackson.core:jackson-databind")
+  api ("com.fasterxml.jackson.core:jackson-core")
 
   api ("commons-codec:commons-codec:1.15")
 }
@@ -92,7 +106,7 @@ publishing {
       pom.withXml {
         asNode().appendNode("name", componentName)
         asNode().appendNode("description", componentDesc)
-		asNode().appendNode("url", "https://interlok.adaptris.net/interlok-docs/#/")
+        asNode().appendNode("url", "https://interlok.adaptris.net/interlok-docs/#/")
         def properties = asNode().appendNode("properties")
         properties.appendNode("target", "3.11.1+")
         properties.appendNode("tags", "azure,office365,outlook,exchange")

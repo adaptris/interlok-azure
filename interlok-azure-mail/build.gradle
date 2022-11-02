@@ -1,11 +1,12 @@
 ext {
-  componentName='Interlok Azure/Outlook'
-  componentDesc="Send/Receive emails via Office 365/Exchange"
+  componentName = 'Interlok Azure/Outlook'
+  componentDesc = "Send/Receive emails via Office 365/Exchange"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
 }
 
 dependencies {
   api project(':interlok-azure-core')
+  api ("com.adaptris:interlok-mail:$interlokCoreVersion") { changing= true}
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
@@ -52,7 +53,7 @@ publishing {
       pom.withXml {
         asNode().appendNode("name", componentName)
         asNode().appendNode("description", componentDesc)
-		asNode().appendNode("url", "https://interlok.adaptris.net/interlok-docs/#/")
+        asNode().appendNode("url", "https://interlok.adaptris.net/interlok-docs/#/")
         def properties = asNode().appendNode("properties")
         properties.appendNode("target", "3.11.1+")
         properties.appendNode("tags", "azure,office365,outlook,exchange")

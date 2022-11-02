@@ -1,32 +1,9 @@
 package com.adaptris.interlok.azure.onedrive;
 
-import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.FixedIntervalPoller;
-import com.adaptris.core.MultiPayloadMessageFactory;
-import com.adaptris.core.Poller;
-import com.adaptris.core.QuartzCronPoller;
-import com.adaptris.core.StandaloneConsumer;
-import com.adaptris.core.stubs.MockMessageListener;
-import com.adaptris.core.util.LifecycleHelper;
-import com.adaptris.interlok.azure.AzureConnection;
-import com.adaptris.interlok.azure.GraphAPIConnection;
-import com.adaptris.interlok.junit.scaffolding.ExampleConsumerCase;
-import com.adaptris.util.TimeInterval;
-import com.microsoft.graph.models.extensions.Drive;
-import com.microsoft.graph.models.extensions.DriveItem;
-import com.microsoft.graph.models.extensions.IGraphServiceClient;
-import com.microsoft.graph.requests.extensions.DriveRequest;
-import com.microsoft.graph.requests.extensions.IDriveItemCollectionPage;
-import com.microsoft.graph.requests.extensions.IDriveItemCollectionRequest;
-import com.microsoft.graph.requests.extensions.IDriveItemCollectionRequestBuilder;
-import com.microsoft.graph.requests.extensions.IDriveItemContentStreamRequest;
-import com.microsoft.graph.requests.extensions.IDriveItemContentStreamRequestBuilder;
-import com.microsoft.graph.requests.extensions.IDriveItemRequestBuilder;
-import com.microsoft.graph.requests.extensions.IDriveRequestBuilder;
-import com.microsoft.graph.requests.extensions.IUserRequestBuilder;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
@@ -38,13 +15,35 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.Test;
 
-public class OneDriveConsumerTest extends ExampleConsumerCase
-{
+import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.FixedIntervalPoller;
+import com.adaptris.core.MultiPayloadMessageFactory;
+import com.adaptris.core.Poller;
+import com.adaptris.core.QuartzCronPoller;
+import com.adaptris.core.StandaloneConsumer;
+import com.adaptris.core.stubs.MockMessageListener;
+import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.interlok.azure.GraphAPIConnection;
+import com.adaptris.interlok.junit.scaffolding.ExampleConsumerCase;
+import com.adaptris.util.TimeInterval;
+import com.microsoft.graph.models.Drive;
+import com.microsoft.graph.models.DriveItem;
+import com.microsoft.graph.requests.DriveItemCollectionPage;
+import com.microsoft.graph.requests.DriveItemCollectionRequest;
+import com.microsoft.graph.requests.DriveItemCollectionRequestBuilder;
+import com.microsoft.graph.requests.DriveItemContentStreamRequest;
+import com.microsoft.graph.requests.DriveItemContentStreamRequestBuilder;
+import com.microsoft.graph.requests.DriveItemRequestBuilder;
+import com.microsoft.graph.requests.DriveRequest;
+import com.microsoft.graph.requests.DriveRequestBuilder;
+import com.microsoft.graph.requests.GraphServiceClient;
+import com.microsoft.graph.requests.UserRequestBuilder;
+
+public class OneDriveConsumerTest extends ExampleConsumerCase {
   private static final String APPLICATION_ID = "47ea49b0-670a-47c1-9303-0b45ffb766ec";
   private static final String TENANT_ID = "cbf4a38d-3117-48cd-b54b-861480ee93cd";
   private static final String CLIENT_SECRET = "NGMyYjY0MTEtOTU0Ny00NTg0LWE3MzQtODg2ZDAzZGVmZmY1Cg==";
@@ -52,28 +51,21 @@ public class OneDriveConsumerTest extends ExampleConsumerCase
 
   private static final String CONTENT = "A bud light makes love to a Bacardi Silver about the Octoberfest. Now and then, the funny Amarillo Pale Ale seldom makes love to the steam engine of another girl scout. If the Pilsner beyond a burglar ale slurly satiates a shabby girl scout, then the change reads a magazine. A psychotic St. Pauli Girl dies, because the fat satellite brewery drunkenly finds lice on the financial Pilsner. When a Heineken near a Bridgeport ESB leaves, the air hocky table hesitates.";
 
-  private static final Poller[] POLLERS =
-  {
-    new FixedIntervalPoller(new TimeInterval(60L, TimeUnit.SECONDS)),
-    new QuartzCronPoller("0 */5 * * * ?"),
-  };
+  private static final Poller[] POLLERS = { new FixedIntervalPoller(new TimeInterval(60L, TimeUnit.SECONDS)),
+      new QuartzCronPoller("0 */5 * * * ?"), };
 
-  private AzureConnection connection;
+  private GraphAPIConnection connection;
   private OneDriveConsumer consumer;
 
   private boolean liveTests = false;
 
   @Before
-  public void setUp()
-  {
+  public void setUp() {
     Properties properties = new Properties();
-    try
-    {
+    try {
       properties.load(new FileInputStream(this.getClass().getResource("onedrive.properties").getFile()));
       liveTests = true;
-    }
-    catch (Exception e)
-    {
+    } catch (Exception e) {
       // do nothing
     }
 
@@ -88,15 +80,13 @@ public class OneDriveConsumerTest extends ExampleConsumerCase
   }
 
   @Test
-  public void testLiveConsumer() throws Exception
-  {
+  public void testLiveConsumer() throws Exception {
     Assume.assumeTrue(liveTests);
 
     MockMessageListener mockMessageListener = new MockMessageListener(10);
     StandaloneConsumer standaloneConsumer = new StandaloneConsumer(connection, consumer);
     standaloneConsumer.registerAdaptrisMessageListener(mockMessageListener);
-    try
-    {
+    try {
       LifecycleHelper.init(standaloneConsumer);
       LifecycleHelper.prepare(standaloneConsumer);
       LifecycleHelper.start(standaloneConsumer);
@@ -107,20 +97,15 @@ public class OneDriveConsumerTest extends ExampleConsumerCase
 
       System.out.println("Found " + messages.size() + " files");
       Thread.sleep(5000); // sleep for 5 seconds, otherwise the Graph SDK complains we disconnected while waiting for a response
-    }
-    catch (InterruptedIOException | InterruptedException e)
-    {
+    } catch (InterruptedIOException | InterruptedException e) {
       // Ignore these as they're occasionally thrown by the Graph SDK when the connection is closed while it's still processing
-    }
-    finally
-    {
+    } finally {
       stop(standaloneConsumer);
     }
   }
 
   @Test
-  public void testMockConsumer() throws Exception
-  {
+  public void testMockConsumer() throws Exception {
     Assume.assumeFalse(liveTests);
 
     connection = mock(GraphAPIConnection.class);
@@ -129,15 +114,14 @@ public class OneDriveConsumerTest extends ExampleConsumerCase
     MockMessageListener mockMessageListener = new MockMessageListener(10);
     StandaloneConsumer standaloneConsumer = new StandaloneConsumer(connection, consumer);
     standaloneConsumer.registerAdaptrisMessageListener(mockMessageListener);
-    try
-    {
+    try {
       when(connection.retrieveConnection(any())).thenReturn(connection);
 
-      IGraphServiceClient client = mock(IGraphServiceClient.class);
+      GraphServiceClient client = mock(GraphServiceClient.class);
       when(connection.getClientConnection()).thenReturn(client);
-      IUserRequestBuilder userRequestBuilder = mock(IUserRequestBuilder.class);
+      UserRequestBuilder userRequestBuilder = mock(UserRequestBuilder.class);
       when(client.users(USERNAME)).thenReturn(userRequestBuilder);
-      IDriveRequestBuilder driveRequestBuilder = mock(IDriveRequestBuilder.class);
+      DriveRequestBuilder driveRequestBuilder = mock(DriveRequestBuilder.class);
       when(userRequestBuilder.drive()).thenReturn(driveRequestBuilder);
       DriveRequest driveRequest = mock(DriveRequest.class);
       when(driveRequestBuilder.buildRequest()).thenReturn(driveRequest);
@@ -145,23 +129,23 @@ public class OneDriveConsumerTest extends ExampleConsumerCase
       drive.id = "8e7a00f1daf1c2b7015459dd686856c2";
       when(driveRequest.get()).thenReturn(drive);
       when(userRequestBuilder.drives(drive.id)).thenReturn(driveRequestBuilder);
-      IDriveItemRequestBuilder driveItemRequestBuilder = mock(IDriveItemRequestBuilder.class);
+      DriveItemRequestBuilder driveItemRequestBuilder = mock(DriveItemRequestBuilder.class);
       when(driveRequestBuilder.root()).thenReturn(driveItemRequestBuilder);
-      IDriveItemCollectionRequestBuilder childrenRequest = mock(IDriveItemCollectionRequestBuilder.class);
+      DriveItemCollectionRequestBuilder childrenRequest = mock(DriveItemCollectionRequestBuilder.class);
       when(driveItemRequestBuilder.children()).thenReturn(childrenRequest);
-      IDriveItemCollectionRequest children = mock(IDriveItemCollectionRequest.class);
+      DriveItemCollectionRequest children = mock(DriveItemCollectionRequest.class);
       when(childrenRequest.buildRequest()).thenReturn(children);
-      IDriveItemCollectionPage migraine = mock(IDriveItemCollectionPage.class);
+      DriveItemCollectionPage migraine = mock(DriveItemCollectionPage.class);
       when(children.get()).thenReturn(migraine);
       DriveItem fileReference = new DriveItem();
       fileReference.id = "73271d08680510a91aec95295ed03b90";
       fileReference.name = "beer";
-      fileReference.size = (long)CONTENT.length();
+      fileReference.size = (long) CONTENT.length();
       when(migraine.getCurrentPage()).thenReturn(Arrays.asList(fileReference));
       when(driveRequestBuilder.items(fileReference.id)).thenReturn(driveItemRequestBuilder);
-      IDriveItemContentStreamRequestBuilder streamRequestBuilder = mock(IDriveItemContentStreamRequestBuilder.class);
+      DriveItemContentStreamRequestBuilder streamRequestBuilder = mock(DriveItemContentStreamRequestBuilder.class);
       when(driveItemRequestBuilder.content()).thenReturn(streamRequestBuilder);
-      IDriveItemContentStreamRequest streamRequest = mock(IDriveItemContentStreamRequest.class);
+      DriveItemContentStreamRequest streamRequest = mock(DriveItemContentStreamRequest.class);
       when(streamRequestBuilder.buildRequest()).thenReturn(streamRequest);
       when(streamRequest.get()).thenReturn(new ByteArrayInputStream(CONTENT.getBytes(Charset.defaultCharset())));
 
@@ -175,33 +159,27 @@ public class OneDriveConsumerTest extends ExampleConsumerCase
 
       assertEquals(1, messages.size());
       assertEquals(CONTENT, messages.get(0).getContent());
-    }
-    catch (InterruptedIOException | InterruptedException e)
-    {
+    } catch (InterruptedIOException | InterruptedException e) {
       // Ignore these as they're occasionally thrown by the Graph SDK when the connection is closed while it's still processing
-    }
-    finally
-    {
+    } finally {
       stop(standaloneConsumer);
     }
   }
 
   @Override
-  protected Object retrieveObjectForSampleConfig()
-  {
+  protected Object retrieveObjectForSampleConfig() {
     return new StandaloneConsumer(connection, consumer);
   }
 
   @Override
-  protected List<StandaloneConsumer> retrieveObjectsForSampleConfig()
-  {
-    List<StandaloneConsumer> result = new ArrayList();
-    for (Poller poller : POLLERS)
-    {
-      StandaloneConsumer standaloneConsumer = (StandaloneConsumer)retrieveObjectForSampleConfig();
-      ((OneDriveConsumer)standaloneConsumer.getConsumer()).setPoller(poller);
+  protected List<StandaloneConsumer> retrieveObjectsForSampleConfig() {
+    List<StandaloneConsumer> result = new ArrayList<>();
+    for (Poller poller : POLLERS) {
+      StandaloneConsumer standaloneConsumer = (StandaloneConsumer) retrieveObjectForSampleConfig();
+      ((OneDriveConsumer) standaloneConsumer.getConsumer()).setPoller(poller);
       result.add(standaloneConsumer);
     }
     return result;
   }
+
 }

@@ -1,16 +1,17 @@
 package com.adaptris.interlok.azure;
 
+import javax.validation.constraints.NotBlank;
+
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
-import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisConnectionImp;
+import com.adaptris.core.CoreException;
 import com.adaptris.interlok.resolver.ExternalResolver;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+
 import lombok.Getter;
 import lombok.Setter;
-
-import javax.validation.constraints.NotBlank;
 
 /**
  * Base Azure connection.
@@ -18,9 +19,7 @@ import javax.validation.constraints.NotBlank;
 @XStreamAlias("azure-connection")
 @AdapterComponent
 @ComponentProfile(summary = "Connect to an Azure tenant", tag = "connections,azure")
-@DisplayOrder(order = { "applicationId", "tenantId", "clientSecret" })
-public abstract class AzureConnection<C> extends AdaptrisConnectionImp
-{
+public abstract class AzureConnection<C> extends AdaptrisConnectionImp {
   /**
    * The ID of the Azure application.
    */
@@ -52,8 +51,7 @@ public abstract class AzureConnection<C> extends AdaptrisConnectionImp
    * {@inheritDoc}.
    */
   @Override
-  protected void prepareConnection()
-  {
+  protected void prepareConnection() {
     /* do nothing */
   }
 
@@ -61,8 +59,7 @@ public abstract class AzureConnection<C> extends AdaptrisConnectionImp
    * {@inheritDoc}.
    */
   @Override
-  protected void stopConnection()
-  {
+  protected void stopConnection() {
     /* do nothing */
   }
 
@@ -73,18 +70,11 @@ public abstract class AzureConnection<C> extends AdaptrisConnectionImp
    * Close the underlying connection.
    */
   @Override
-  protected void closeConnection()
-  {
+  protected void closeConnection() {
     /* do nothing */
   }
 
-  protected String tenant()
-  {
-    return String.format("https://login.microsoftonline.com/%s", tenantId);
-  }
-
-  protected String clientSecret()
-  {
+  protected String clientSecret() {
     return ExternalResolver.resolve(clientSecret);
   }
 }

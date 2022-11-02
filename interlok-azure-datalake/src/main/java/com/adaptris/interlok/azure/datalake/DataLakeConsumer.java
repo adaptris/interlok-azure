@@ -12,9 +12,15 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-*/
+ */
 
 package com.adaptris.interlok.azure.datalake;
+
+import java.io.OutputStream;
+
+import javax.validation.constraints.NotBlank;
+
+import org.apache.commons.io.FilenameUtils;
 
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
@@ -31,16 +37,12 @@ import com.azure.storage.file.datalake.DataLakeServiceClient;
 import com.azure.storage.file.datalake.models.ListPathsOptions;
 import com.azure.storage.file.datalake.models.PathItem;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.io.FilenameUtils;
-
-import javax.validation.constraints.NotBlank;
-import java.io.OutputStream;
 
 /**
- * Implementation of a file consumer that can retrieve files from
- * Microsoft Data Lake.
+ * Implementation of a file consumer that can retrieve files from Microsoft Data Lake.
  *
  * @config azure-data-lake-consumer
  */
@@ -48,8 +50,7 @@ import java.io.OutputStream;
 @AdapterComponent
 @ComponentProfile(summary = "Pickup data frmo Azure Data Lake", tag = "consumer,azure,data lake,data,lake")
 @DisplayOrder(order = { "fileSystem", "path" })
-public class DataLakeConsumer extends AdaptrisPollingConsumer
-{
+public class DataLakeConsumer extends AdaptrisPollingConsumer {
   /**
    * The Data Lake file system to access.
    */
@@ -70,8 +71,7 @@ public class DataLakeConsumer extends AdaptrisPollingConsumer
    * {@inheritDoc}.
    */
   @Override
-  protected void prepareConsumer()
-  {
+  protected void prepareConsumer() {
     /* do nothing */
   }
 
@@ -81,13 +81,11 @@ public class DataLakeConsumer extends AdaptrisPollingConsumer
    * @return The number of files found.
    */
   @Override
-  protected int processMessages()
-  {
+  protected int processMessages() {
     log.debug("Polling for data in Azure Data Lake");
 
     int count = 0;
-    try
-    {
+    try {
       DataLakeConnection connection = retrieveConnection(DataLakeConnection.class);
 
       log.debug("Scanning {}:{} for files", fileSystem, path);
@@ -99,11 +97,9 @@ public class DataLakeConsumer extends AdaptrisPollingConsumer
       ListPathsOptions options = new ListPathsOptions();
       options.setPath(path);
       PagedIterable<PathItem> pagedIterable = fileSystemClient.listPaths(options, null);
-      for (PathItem item : pagedIterable)
-      {
+      for (PathItem item : pagedIterable) {
         String name = FilenameUtils.getName(item.getName());
-        if (item.isDirectory())
-        {
+        if (item.isDirectory()) {
           log.debug("Skipping directory {}", name);
         }
         log.debug("Found file {}", name);
@@ -114,8 +110,7 @@ public class DataLakeConsumer extends AdaptrisPollingConsumer
 
         DataLakeFileClient fileClient = directoryClient.getFileClient(name);
 
-        try (OutputStream os = message.getOutputStream())
-        {
+        try (OutputStream os = message.getOutputStream()) {
           fileClient.read(os);
         }
 
@@ -123,9 +118,7 @@ public class DataLakeConsumer extends AdaptrisPollingConsumer
       }
 
       count++;
-    }
-    catch (Throwable e)
-    {
+    } catch (Throwable e) {
       log.error("Exception in Data Lake", e);
     }
 
@@ -136,11 +129,8 @@ public class DataLakeConsumer extends AdaptrisPollingConsumer
    * {@inheritDoc}.
    */
   @Override
-  protected String newThreadName()
-  {
+  protected String newThreadName() {
     return DestinationHelper.threadName(retrieveAdaptrisMessageListener(), null);
   }
 
-
 }
-
