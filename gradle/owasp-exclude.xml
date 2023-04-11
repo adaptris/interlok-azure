@@ -28,5 +28,13 @@
     <packageUrl regex="true">^pkg:maven/org.json/json@.*$</packageUrl>
     <cve>CVE-2022-45688</cve>
     <cpe>cpe:/a:hutool:hutool</cpe>
-  </suppress> 
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: nimbus-jose-jwt-9.22.jar (shaded: net.minidev:json-smart:2.4.8)
+	This is a false positive as we have net.minidev:json-smart:2.4.10 as a dependency and we don't have ini-parser as a dependency.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/net\.minidev/json\-smart@.*$</packageUrl>
+    <vulnerabilityName>CVE-2023-1370</vulnerabilityName>
+  </suppress>  
 </suppressions>
