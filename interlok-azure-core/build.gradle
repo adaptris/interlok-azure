@@ -2,15 +2,15 @@ ext {
   componentName = 'Interlok Azure/Common'
   componentDesc = "Common components for interacting with Azure and Office 365"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  jacksonVersion = '2.14.1'
-  nettyVersion = '4.1.87.Final'
+  jacksonVersion = '2.14.2'
+  nettyVersion = '4.1.91.Final'
 }
 
 dependencies {
 
-  api ("com.microsoft.azure:msal4j:1.13.2")
+  api ("com.microsoft.azure:msal4j:1.13.7")
     constraints {
-      api("net.minidev:json-smart:2.4.8") {
+      api("net.minidev:json-smart:2.4.10") {
         because "CVE-2021-27568: Affect json-smart up to (excluding) 2.3.1"
       }
     }
