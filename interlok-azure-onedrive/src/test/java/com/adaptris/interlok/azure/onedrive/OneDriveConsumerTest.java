@@ -1,6 +1,8 @@
 package com.adaptris.interlok.azure.onedrive;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -15,9 +17,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.FixedIntervalPoller;
@@ -59,7 +60,7 @@ public class OneDriveConsumerTest extends ExampleConsumerCase {
 
   private boolean liveTests = false;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     Properties properties = new Properties();
     try {
@@ -81,7 +82,7 @@ public class OneDriveConsumerTest extends ExampleConsumerCase {
 
   @Test
   public void testLiveConsumer() throws Exception {
-    Assume.assumeTrue(liveTests);
+    assumeTrue(liveTests);
 
     MockMessageListener mockMessageListener = new MockMessageListener(10);
     StandaloneConsumer standaloneConsumer = new StandaloneConsumer(connection, consumer);
@@ -106,7 +107,7 @@ public class OneDriveConsumerTest extends ExampleConsumerCase {
 
   @Test
   public void testMockConsumer() throws Exception {
-    Assume.assumeFalse(liveTests);
+    assumeFalse(liveTests);
 
     connection = mock(GraphAPIConnection.class);
     consumer.registerConnection(connection);

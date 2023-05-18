@@ -88,7 +88,7 @@ public class DocumentDownloadService extends ServiceImp implements ConnectedServ
     String file = adaptrisMessage.resolve(filename);
 
     try {
-      GraphServiceClient graphClient = ((GraphAPIConnection) connection).getClientConnection();
+      GraphServiceClient<?> graphClient = ((GraphAPIConnection) connection).getClientConnection();
 
       Drive oneDrive = graphClient.users(username).drive().buildRequest().get();
       DriveItem driveItem = graphClient.users(user).drives(oneDrive.id).root().itemWithPath(file).buildRequest().get();

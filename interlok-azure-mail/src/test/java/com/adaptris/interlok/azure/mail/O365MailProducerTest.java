@@ -1,5 +1,7 @@
 package com.adaptris.interlok.azure.mail;
 
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -11,9 +13,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
@@ -41,7 +42,7 @@ public class O365MailProducerTest extends ExampleProducerCase {
 
   private boolean liveTests = false;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     Properties properties = new Properties();
     try {
@@ -66,7 +67,7 @@ public class O365MailProducerTest extends ExampleProducerCase {
 
   @Test
   public void testLiveProducer() throws Exception {
-    Assume.assumeTrue(liveTests);
+    assumeTrue(liveTests);
 
     AdaptrisMessage message = AdaptrisMessageFactory.getDefaultInstance().newMessage(MESSAGE);
     StandaloneProducer standaloneProducer = new StandaloneProducer(connection, producer);
@@ -75,7 +76,7 @@ public class O365MailProducerTest extends ExampleProducerCase {
 
   @Test
   public void testMockProducer() throws Exception {
-    Assume.assumeFalse(liveTests);
+    assumeFalse(liveTests);
 
     connection = mock(GraphAPIConnection.class);
     producer.registerConnection(connection);
@@ -107,4 +108,5 @@ public class O365MailProducerTest extends ExampleProducerCase {
   protected List<StandaloneProducer> retrieveObjectsForSampleConfig() {
     return Collections.singletonList((StandaloneProducer) retrieveObjectForSampleConfig());
   }
+
 }

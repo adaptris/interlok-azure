@@ -1,7 +1,9 @@
 package com.adaptris.interlok.azure.mail;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -17,9 +19,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.FixedIntervalPoller;
@@ -69,7 +70,7 @@ public class O365MailConsumerTest extends ExampleConsumerCase {
 
   private boolean liveTests = false;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     properties = new Properties();
     try {
@@ -87,7 +88,7 @@ public class O365MailConsumerTest extends ExampleConsumerCase {
 
   @Test
   public void testLiveConsumer() throws Exception {
-    Assume.assumeTrue(liveTests);
+    assumeTrue(liveTests);
 
     MockMessageListener mockMessageListener = new MockMessageListener(10);
     O365MailConsumer consumer = newConsumer();
@@ -113,7 +114,7 @@ public class O365MailConsumerTest extends ExampleConsumerCase {
 
   @Test
   public void testLiveConsumerWithSearch() throws Exception {
-    Assume.assumeTrue(liveTests);
+    assumeTrue(liveTests);
 
     MockMessageListener mockMessageListener = new MockMessageListener(10);
     O365MailConsumer consumer = newConsumer();
@@ -140,7 +141,7 @@ public class O365MailConsumerTest extends ExampleConsumerCase {
 
   @Test
   public void testMockConsumer() throws Exception {
-    Assume.assumeFalse(liveTests);
+    assumeFalse(liveTests);
 
     GraphAPIConnection connection = mock(GraphAPIConnection.class);
     O365MailConsumer consumer = newConsumer();
@@ -193,7 +194,7 @@ public class O365MailConsumerTest extends ExampleConsumerCase {
 
   @Test
   public void testMockConsumerWithAttachment() throws Exception {
-    Assume.assumeFalse(liveTests);
+    assumeFalse(liveTests);
 
     GraphAPIConnection connection = mock(GraphAPIConnection.class);
     O365MailConsumer consumer = newConsumer();
@@ -266,7 +267,7 @@ public class O365MailConsumerTest extends ExampleConsumerCase {
 
   @Test
   public void testMockConsumerDelete() throws Exception {
-    Assume.assumeFalse(liveTests);
+    assumeFalse(liveTests);
 
     GraphAPIConnection connection = mock(GraphAPIConnection.class);
     O365MailConsumer consumer = newConsumer();
