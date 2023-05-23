@@ -1,9 +1,11 @@
 package com.adaptris.interlok.azure.onedrive;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -17,9 +19,8 @@ import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
@@ -52,7 +53,7 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase {
   private static final String ORIGINAL = "beer.md";
   private static final String CONVERT = "beer.html";
 
-  private AzureConnection connection;
+  private AzureConnection<GraphServiceClient<?>> connection;
 
   private String username = "user@example.com";
   private String data;
@@ -60,7 +61,7 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase {
 
   private boolean liveTests = false;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     Properties properties = new Properties();
     try {
@@ -92,7 +93,7 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase {
    */
   @Test
   public void liveTests() throws Exception {
-    Assume.assumeTrue(liveTests);
+    assumeTrue(liveTests);
 
     AdaptrisMessage message = AdaptrisMessageFactory.getDefaultInstance().newMessage(data);
 
@@ -129,7 +130,7 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase {
 
   @Test
   public void mockUploadTest() throws Exception {
-    Assume.assumeFalse(liveTests);
+    assumeFalse(liveTests);
 
     DocumentUploadService upload = documentUploadService();
 
@@ -175,7 +176,7 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase {
 
   @Test
   public void mockDownloadTest() throws Exception {
-    Assume.assumeFalse(liveTests);
+    assumeFalse(liveTests);
 
     DocumentDownloadService download = documentDownloadService();
 
@@ -220,7 +221,7 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase {
 
   @Test
   public void mockTransformTest() throws Exception {
-    Assume.assumeFalse(liveTests);
+    assumeFalse(liveTests);
 
     DocumentTransformService transform = documentTransformService();
 
@@ -254,7 +255,7 @@ public class DocumentUpDownServiceTest extends ExampleServiceCase {
     DriveItemContentStreamRequestBuilder streamRequestBuilder = mock(DriveItemContentStreamRequestBuilder.class);
     when(driveItemRequestBuilder.content()).thenReturn(streamRequestBuilder);
     DriveItemContentStreamRequest streamRequest = mock(DriveItemContentStreamRequest.class);
-    when(streamRequestBuilder.buildRequest(isA(List.class))).thenReturn(streamRequest);
+    when(streamRequestBuilder.buildRequest(anyList())).thenReturn(streamRequest);
     when(streamRequest.get()).thenReturn(new ByteArrayInputStream(html.getBytes(Charset.defaultCharset())));
 
     AdaptrisMessage message = AdaptrisMessageFactory.getDefaultInstance().newMessage();
