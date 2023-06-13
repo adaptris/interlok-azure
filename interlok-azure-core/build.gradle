@@ -2,36 +2,36 @@ ext {
   componentName = 'Interlok Azure/Common'
   componentDesc = "Common components for interacting with Azure and Office 365"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  jacksonVersion = '2.14.2'
-  nettyVersion = '4.1.91.Final'
+  jacksonVersion = '2.15.2'
+  nettyVersion = '4.1.93.Final'
 }
 
 dependencies {
 
   api ("com.microsoft.azure:msal4j:1.13.7")
     constraints {
-      api("net.minidev:json-smart:2.4.10") {
+      api("net.minidev:json-smart:2.4.11") {
         because "CVE-2021-27568: Affect json-smart up to (excluding) 2.3.1"
       }
     }
-  api ("com.microsoft.graph:microsoft-graph:5.54.0") {
+  api ("com.microsoft.graph:microsoft-graph:5.59.0") {
     exclude group: "com.google.code.gson", module: "gson"
     exclude group: "com.squareup.okhttp3", module: "okhttp"
   }
-  implementation ("com.google.code.gson:gson:2.9.1")
+  implementation ("com.google.code.gson:gson:2.10.1")
   implementation ("com.squareup.okhttp3:okhttp:4.11.0") {
     exclude group: "com.google.code.gson", module: "gson"
     exclude group: "com.squareup.okio", module: "okio"
   }
-  implementation ("com.squareup.okio:okio:3.2.0")
-  api ("com.azure:azure-identity:1.5.5") {
+  implementation ("com.squareup.okio:okio:3.3.0")
+  api ("com.azure:azure-identity:1.9.1") {
     // Exclude KeePassJava2 dependencies, because we don't care
     // If people want it, then can include it themselves.
     exclude group: "org.linguafranca.pwdb", module: "KeePassJava2"
     exclude group: "org.simpleframework", module: "simple-xml"
     exclude group: "io.netty"
   }
-  api ("com.azure:azure-storage-file-datalake:12.15.0") {
+  api ("com.azure:azure-storage-file-datalake:12.15.2") {
     exclude group: "io.netty"
   }
 
@@ -47,8 +47,7 @@ dependencies {
 
   api ("org.codehaus.woodstox:stax2-api:4.2.1")
   api ("org.codehaus.staxmate:stax2:2.1")
-  api ("org.codehaus.woodstox:stax2-api:4.2.1")
-  api ("com.google.guava:guava:31.1-jre")
+  api ("com.google.guava:guava:32.0.1-jre")
   // azure-core via azure-identity has an explicit dependency on these jars,
   // so we need to pin the right version
   // Dependency to platform/BOM
@@ -76,7 +75,6 @@ task sourcesJar(type: Jar, dependsOn: classes) {
     classifier = 'sources'
     from sourceSets.main.extensions.delombokTask
 }
-
 
 jar {
   manifest {

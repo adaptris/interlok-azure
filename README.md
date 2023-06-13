@@ -1,6 +1,12 @@
 # interlok-azure
 
-[![GitHub tag](https://img.shields.io/github/tag/adaptris/interlok-azure.svg)](https://github.com/adaptris/interlok-azure/tags) [![codecov](https://codecov.io/gh/adaptris/interlok-azure/branch/develop/graph/badge.svg)](https://codecov.io/gh/adaptris/interlok-azure) [![Total alerts](https://img.shields.io/lgtm/alerts/g/adaptris/interlok-azure.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/adaptris/interlok-azure/alerts/) [![Language grade: Java](https://img.shields.io/lgtm/grade/java/g/adaptris/interlok-azure.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/adaptris/interlok-azure/context:java)
+[![GitHub tag](https://img.shields.io/github/tag/adaptris/interlok-azure.svg)](https://github.com/adaptris/interlok-azure/tags)
+[![license](https://img.shields.io/github/license/adaptris/interlok-azure.svg)](https://github.com/adaptris/interlok-azure/blob/develop/LICENSE)
+[![Actions Status](https://github.com/adaptris/interlok-azure/actions/workflows/gradle-publish.yml/badge.svg)](https://github.com/adaptris/interlok-azure/actions)
+[![codecov](https://codecov.io/gh/adaptris/interlok-azure/branch/develop/graph/badge.svg)](https://codecov.io/gh/adaptris/interlok-azure)
+[![CodeQL](https://github.com/adaptris/interlok-azure/workflows/CodeQL/badge.svg)](https://github.com/adaptris/interlok-azure/security/code-scanning)
+[![Known Vulnerabilities](https://snyk.io/test/github/adaptris/interlok-azure/badge.svg?targetFile=build.gradle)](https://snyk.io/test/github/adaptris/interlok-azure?targetFile=build.gradle)
+[![Closed PRs](https://img.shields.io/github/issues-pr-closed/adaptris/interlok-azure)](https://github.com/adaptris/interlok-azure/pulls?q=is%3Apr+is%3Aclosed)
 
 The suggested name was `didactic-chainsaw`
 

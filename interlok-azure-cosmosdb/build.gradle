@@ -3,7 +3,7 @@ ext {
   componentDesc = 'Components that interact with Azure CosmosDB'
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
 
-  jacksonVersion = '2.14.2'
+  jacksonVersion = '2.15.2'
 }
 
 dependencies {
@@ -64,7 +64,7 @@ publishing {
       pom.withXml {
         asNode().appendNode("name", componentName)
         asNode().appendNode("description", componentDesc)
-		asNode().appendNode("url", "https://interlok.adaptris.net/interlok-docs/#/")
+        asNode().appendNode("url", "https://interlok.adaptris.net/interlok-docs/#/")
         def properties = asNode().appendNode("properties")
         properties.appendNode("target", "3.9.2+")
         properties.appendNode("tags", "azure,cosmosdb,cosmos")

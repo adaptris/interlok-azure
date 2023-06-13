@@ -1,26 +1,10 @@
 package com.adaptris.interlok.azure.cosmosdb;
 
-import com.adaptris.annotation.AdvancedConfig;
-import com.adaptris.annotation.ComponentProfile;
-import com.adaptris.annotation.DisplayOrder;
-import com.adaptris.annotation.InputFieldDefault;
-import com.adaptris.annotation.InputFieldHint;
-import com.adaptris.core.http.apache.request.RequestInterceptorBuilder;
-import com.adaptris.interlok.resolver.ExternalResolver;
-import com.adaptris.security.password.Password;
-import com.microsoft.azure.documentdb.internal.BaseAuthorizationTokenProvider;
-import com.thoughtworks.xstream.annotations.XStreamAlias;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.Setter;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpException;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.protocol.HttpContext;
+import static com.adaptris.interlok.azure.cosmosdb.CosmosAuthorizationHeader.DEFAULT_DATE_FORMAT;
+import static com.adaptris.interlok.azure.cosmosdb.CosmosAuthorizationHeader.DEFAULT_TIMEZONE;
+import static com.adaptris.interlok.azure.cosmosdb.CosmosAuthorizationHeaderImpl.DEFAULT_METADATA_KEY;
+import static com.adaptris.interlok.azure.cosmosdb.CosmosAuthorizationHeaderImpl.X_MS_DATE;
 
-import javax.validation.constraints.NotBlank;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -30,15 +14,31 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.adaptris.interlok.azure.cosmosdb.CosmosAuthorizationHeader.DEFAULT_DATE_FORMAT;
-import static com.adaptris.interlok.azure.cosmosdb.CosmosAuthorizationHeader.DEFAULT_METADATA_KEY;
-import static com.adaptris.interlok.azure.cosmosdb.CosmosAuthorizationHeader.DEFAULT_TIMEZONE;
-import static com.adaptris.interlok.azure.cosmosdb.CosmosAuthorizationHeader.X_MS_DATE;
+import javax.validation.constraints.NotBlank;
+
+import org.apache.http.HttpException;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpRequestInterceptor;
+import org.apache.http.protocol.HttpContext;
+
+import com.adaptris.annotation.ComponentProfile;
+import com.adaptris.annotation.DisplayOrder;
+import com.adaptris.annotation.InputFieldHint;
+import com.adaptris.core.http.apache.request.RequestInterceptorBuilder;
+import com.adaptris.interlok.resolver.ExternalResolver;
+import com.adaptris.security.password.Password;
+import com.microsoft.azure.documentdb.internal.BaseAuthorizationTokenProvider;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.Setter;
 
 @NoArgsConstructor
 @XStreamAlias("cosmosdb-authorization-interceptor")
 @ComponentProfile(summary = "Builds an authorization header for Azure CosmosDB", since = "3.9.2", tag = "azure,cosmosdb,cosmos,interceptor")
-@DisplayOrder(order = {"masterKey", "targetKey"})
+@DisplayOrder(order = { "masterKey", "targetKey" })
 public class CosmosAuthorizationInterceptor implements HttpRequestInterceptor, RequestInterceptorBuilder {
 
   /**

@@ -3,9 +3,7 @@ package com.adaptris.interlok.azure.cosmosdb;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.message.BasicHttpRequest;
-import org.junit.Test;
-
-import static org.junit.Assert.assertTrue;
+import org.junit.jupiter.api.Test;
 
 public class CosmosAuthorizationInterceptorTest {
 
@@ -21,4 +19,5 @@ public class CosmosAuthorizationInterceptorTest {
 
     interceptor.process(request, null);
   }
+
 }

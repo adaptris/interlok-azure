@@ -26,8 +26,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Implementation of a file producer that can upload files to Microsoft
- * Data Lake.
+ * Implementation of a file producer that can upload files to Microsoft Data Lake.
  *
  * @config azure-data-lake-producer
  */
@@ -35,8 +34,7 @@ import lombok.Setter;
 @AdapterComponent
 @ComponentProfile(summary = "Put data into a Azure Data Lake", tag = "producer,azure,data lake,data,lake")
 @DisplayOrder(order = { "fileSystem", "path", "filename" })
-public class DataLakeProducer extends ProduceOnlyProducerImp
-{
+public class DataLakeProducer extends ProduceOnlyProducerImp {
   /**
    * The Data Lake file system to access.
    */
@@ -77,29 +75,29 @@ public class DataLakeProducer extends ProduceOnlyProducerImp
    * {@inheritDoc}.
    */
   @Override
-  public void prepare()
-  {
+  public void prepare() {
     /* do nothing */
   }
 
   /**
    * Upload the given Adaptris message to the Data Lake.
    *
-   * @param adaptrisMessage The message to upload.
-   * @param endpoint Ignored.
+   * @param adaptrisMessage
+   *          The message to upload.
+   * @param endpoint
+   *          Ignored.
    *
-   * @throws ProduceException If there is a problem uploading the file.
+   * @throws ProduceException
+   *           If there is a problem uploading the file.
    */
   @Override
-  protected void doProduce(AdaptrisMessage adaptrisMessage, String endpoint) throws ProduceException
-  {
+  protected void doProduce(AdaptrisMessage adaptrisMessage, String endpoint) throws ProduceException {
     String d = adaptrisMessage.resolve(fileSystem);
     String p = adaptrisMessage.resolve(path);
     String f = adaptrisMessage.resolve(filename);
     log.debug("Placing file {} into directory {} on file system {}", f, p, d);
 
-    try
-    {
+    try {
       DataLakeConnection connection = retrieveConnection(DataLakeConnection.class);
       DataLakeServiceClient dataLakeServiceClient = connection.getClientConnection();
       DataLakeFileSystemClient fileSystemClient = dataLakeServiceClient.getFileSystemClient(d);
@@ -115,15 +113,12 @@ public class DataLakeProducer extends ProduceOnlyProducerImp
 
       DataLakeFileClient fileClient = directoryClient.createFile(f, overwrite());
 
-      try (InputStream stream = adaptrisMessage.getInputStream())
-      {
+      try (InputStream stream = adaptrisMessage.getInputStream()) {
         long fileSize = adaptrisMessage.getSize();
         fileClient.append(stream, 0, fileSize);
-        fileClient.flush(fileSize);
+        fileClient.flush(fileSize, false);
       }
-    }
-    catch (Exception e)
-    {
+    } catch (Exception e) {
       log.error("Could not upload file {} to {} on Data Lake file system {}", f, p, d, e);
       throw new ProduceException(e);
     }
@@ -133,13 +128,11 @@ public class DataLakeProducer extends ProduceOnlyProducerImp
    * {@inheritDoc}.
    */
   @Override
-  public String endpoint(AdaptrisMessage adaptrisMessage)
-  {
+  public String endpoint(AdaptrisMessage adaptrisMessage) {
     return adaptrisMessage.resolve(filename);
   }
 
-  private boolean overwrite()
-  {
+  private boolean overwrite() {
     return BooleanUtils.toBooleanDefaultIfNull(overwrite, true);
   }
 }
