@@ -23,7 +23,7 @@ dependencies {
     exclude group: "com.google.code.gson", module: "gson"
     exclude group: "com.squareup.okio", module: "okio"
   }
-  implementation ("com.squareup.okio:okio:3.3.0")
+  implementation ("com.squareup.okio:okio:3.4.0")
   api ("com.azure:azure-identity:1.9.2") {
     // Exclude KeePassJava2 dependencies, because we don't care
     // If people want it, then can include it themselves.
