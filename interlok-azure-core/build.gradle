@@ -45,9 +45,9 @@ dependencies {
   implementation ("io.netty:netty-codec-http:$nettyVersion")
   implementation ("io.netty:netty-resolver-dns:$nettyVersion")
 
-  api ("org.codehaus.woodstox:stax2-api:4.2.1")
+  api ("org.codehaus.woodstox:stax2-api:4.2.2")
   api ("org.codehaus.staxmate:stax2:2.1")
-  api ("org.codehaus.woodstox:stax2-api:4.2.1")
+  api ("org.codehaus.woodstox:stax2-api:4.2.2")
   api ("com.google.guava:guava:32.1.2-jre")
   // azure-core via azure-identity has an explicit dependency on these jars,
   // so we need to pin the right version
