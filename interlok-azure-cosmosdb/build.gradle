@@ -1,16 +1,21 @@
 ext {
-  componentName = 'Interlok Azure/CosmosDB'
-  componentDesc = 'Components that interact with Azure CosmosDB'
+  componentName = "Interlok Azure/CosmosDB"
+  componentDesc = "Components that interact with Azure CosmosDB"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
 
-  jacksonVersion = '2.15.3'
+  jacksonVersion = "2.15.3"
+  jsonOrgVersion = "20231013"
 }
 
 dependencies {
   api ("com.microsoft.azure:azure-documentdb:2.6.5"){
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
+    exclude group: "org.json", module: "json"
   }
+  
+  implementation ("org.json:json:$jsonOrgVersion")
+  
   // Dependency to platform/BOM
   api (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
   api ("com.fasterxml.jackson.core:jackson-databind")
