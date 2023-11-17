@@ -6,7 +6,6 @@ import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisConnectionImp;
-import com.adaptris.core.CoreException;
 import com.adaptris.interlok.resolver.ExternalResolver;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 

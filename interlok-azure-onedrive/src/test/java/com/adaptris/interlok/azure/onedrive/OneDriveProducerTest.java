@@ -1,5 +1,7 @@
 package com.adaptris.interlok.azure.onedrive;
 
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -14,9 +16,8 @@ import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
@@ -50,7 +51,7 @@ public class OneDriveProducerTest extends ExampleProducerCase {
 
   private boolean liveTests = false;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     Properties properties = new Properties();
     try {
@@ -73,7 +74,7 @@ public class OneDriveProducerTest extends ExampleProducerCase {
 
   @Test
   public void testLiveProducer() throws Exception {
-    Assume.assumeTrue(liveTests);
+    assumeTrue(liveTests);
 
     AdaptrisMessage message = AdaptrisMessageFactory.getDefaultInstance().newMessage(MESSAGE);
     StandaloneProducer standaloneProducer = new StandaloneProducer(connection, producer);
@@ -82,7 +83,7 @@ public class OneDriveProducerTest extends ExampleProducerCase {
 
   @Test
   public void testLiveProducerLarge() throws Exception {
-    Assume.assumeTrue(liveTests);
+    assumeTrue(liveTests);
 
     producer.setFilename("big-data.txt");
 
@@ -98,7 +99,7 @@ public class OneDriveProducerTest extends ExampleProducerCase {
 
   @Test
   public void testMockProducerOverwrite() throws Exception {
-    Assume.assumeFalse(liveTests);
+    assumeFalse(liveTests);
 
     connection = mock(GraphAPIConnection.class);
     producer.registerConnection(connection);
@@ -144,7 +145,7 @@ public class OneDriveProducerTest extends ExampleProducerCase {
 
   @Test
   public void testMockProducerNoOverwrite() throws Exception {
-    Assume.assumeFalse(liveTests);
+    assumeFalse(liveTests);
 
     connection = mock(GraphAPIConnection.class);
     producer.registerConnection(connection);

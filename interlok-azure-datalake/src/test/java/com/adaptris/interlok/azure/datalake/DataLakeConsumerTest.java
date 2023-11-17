@@ -1,5 +1,22 @@
 package com.adaptris.interlok.azure.datalake;
 
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.FileInputStream;
+import java.io.InterruptedIOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.FixedIntervalPoller;
@@ -18,24 +35,8 @@ import com.azure.storage.file.datalake.DataLakeFileSystemClient;
 import com.azure.storage.file.datalake.DataLakeServiceClient;
 import com.azure.storage.file.datalake.models.ListPathsOptions;
 import com.azure.storage.file.datalake.models.PathItem;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
 
-import java.io.FileInputStream;
-import java.io.InterruptedIOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-public class DataLakeConsumerTest extends ExampleConsumerCase
-{
+public class DataLakeConsumerTest extends ExampleConsumerCase {
   private static final String APPLICATION_ID = "47ea49b0-670a-47c1-9303-0b45ffb766ec";
   private static final String TENANT_ID = "cbf4a38d-3117-48cd-b54b-861480ee93cd";
   private static final String CLIENT_SECRET = "NGMyYjY0MTEtOTU0Ny00NTg0LWE3MzQtODg2ZDAzZGVmZmY1Cg==";
@@ -43,28 +44,21 @@ public class DataLakeConsumerTest extends ExampleConsumerCase
   private static final String FILE_SYSTEM = "some-fs";
   private static final String PATH = "some/path";
 
-  private static final Poller[] POLLERS =
-  {
-    new FixedIntervalPoller(new TimeInterval(60L, TimeUnit.SECONDS)),
-    new QuartzCronPoller("0 */5 * * * ?"),
-  };
+  private static final Poller[] POLLERS = { new FixedIntervalPoller(new TimeInterval(60L, TimeUnit.SECONDS)),
+      new QuartzCronPoller("0 */5 * * * ?"), };
 
-  private AzureConnection connection;
+  private AzureConnection<DataLakeServiceClient> connection;
   private DataLakeConsumer consumer;
 
   private boolean runTests = false;
 
-  @Before
-  public void setUp()
-  {
+  @BeforeEach
+  public void setUp() {
     Properties properties = new Properties();
-    try
-    {
+    try {
       properties.load(new FileInputStream(this.getClass().getResource("datalake.properties").getFile()));
       runTests = true;
-    }
-    catch (Exception e)
-    {
+    } catch (Exception e) {
       // do nothing
     }
 
@@ -73,7 +67,7 @@ public class DataLakeConsumerTest extends ExampleConsumerCase
     connection.setTenantId(properties.getProperty("TENANT_ID", TENANT_ID));
     connection.setClientSecret(properties.getProperty("CLIENT_SECRET", CLIENT_SECRET));
 
-    ((DataLakeConnection)connection).setAccount(properties.getProperty("ACCOUNT", ACCOUNT));
+    ((DataLakeConnection) connection).setAccount(properties.getProperty("ACCOUNT", ACCOUNT));
 
     consumer = new DataLakeConsumer();
     consumer.registerConnection(connection);
@@ -83,42 +77,34 @@ public class DataLakeConsumerTest extends ExampleConsumerCase
   }
 
   @Test
-  public void testLiveConsumer() throws Exception
-  {
-    Assume.assumeTrue(runTests);
+  public void testLiveConsumer() throws Exception {
+    assumeTrue(runTests);
 
     MockMessageListener mockMessageListener = new MockMessageListener(10);
     StandaloneConsumer standaloneConsumer = new StandaloneConsumer(connection, consumer);
     standaloneConsumer.registerAdaptrisMessageListener(mockMessageListener);
-    try
-    {
+    try {
       LifecycleHelper.init(standaloneConsumer);
       LifecycleHelper.prepare(standaloneConsumer);
       LifecycleHelper.start(standaloneConsumer);
 
       waitForMessages(mockMessageListener, 5, 25000);
-    }
-    catch (InterruptedIOException | InterruptedException e)
-    {
+    } catch (InterruptedIOException | InterruptedException e) {
       // Ignore these as they're occasionally thrown by the Graph SDK when the connection is closed while it's still processing
-    }
-    finally
-    {
+    } finally {
       stop(standaloneConsumer);
     }
 
     List<AdaptrisMessage> messages = mockMessageListener.getMessages();
     System.out.println("Received " + messages.size() + " messages");
-    for (AdaptrisMessage message : messages)
-    {
+    for (AdaptrisMessage message : messages) {
       System.out.println(message.getMetadataValue("filename") + " [" + message.getMetadataValue("size") + "] : " + message.getContent());
     }
   }
 
   @Test
-  public void testMockConsumer() throws Exception
-  {
-    Assume.assumeFalse(runTests);
+  public void testMockConsumer() throws Exception {
+    assumeFalse(runTests);
 
     connection = mock(DataLakeConnection.class);
     consumer.registerConnection(connection);
@@ -126,8 +112,7 @@ public class DataLakeConsumerTest extends ExampleConsumerCase
     MockMessageListener mockMessageListener = new MockMessageListener(10);
     StandaloneConsumer standaloneConsumer = new StandaloneConsumer(connection, consumer);
     standaloneConsumer.registerAdaptrisMessageListener(mockMessageListener);
-    try
-    {
+    try {
       when(connection.retrieveConnection(any())).thenReturn(connection);
 
       DataLakeServiceClient client = mock(DataLakeServiceClient.class);
@@ -141,7 +126,6 @@ public class DataLakeConsumerTest extends ExampleConsumerCase
       PagedIterable<PathItem> p = mock(PagedIterable.class);
       when(fsClient.listPaths(any(ListPathsOptions.class), isNull())).thenReturn(p);
 
-
       LifecycleHelper.init(standaloneConsumer);
       LifecycleHelper.prepare(standaloneConsumer);
       LifecycleHelper.start(standaloneConsumer);
@@ -151,29 +135,25 @@ public class DataLakeConsumerTest extends ExampleConsumerCase
       List<AdaptrisMessage> messages = mockMessageListener.getMessages();
 
       System.out.println("Found " + messages.size() + " emails");
-    }
-    finally
-    {
+    } finally {
       stop(standaloneConsumer);
     }
   }
 
   @Override
-  protected Object retrieveObjectForSampleConfig()
-  {
+  protected Object retrieveObjectForSampleConfig() {
     return new StandaloneConsumer(connection, consumer);
   }
 
   @Override
-  protected List<StandaloneConsumer> retrieveObjectsForSampleConfig()
-  {
+  protected List<StandaloneConsumer> retrieveObjectsForSampleConfig() {
     List<StandaloneConsumer> result = new ArrayList<>();
-    for (Poller poller : POLLERS)
-    {
-      StandaloneConsumer standaloneConsumer = (StandaloneConsumer)retrieveObjectForSampleConfig();
-      ((DataLakeConsumer)standaloneConsumer.getConsumer()).setPoller(poller);
+    for (Poller poller : POLLERS) {
+      StandaloneConsumer standaloneConsumer = (StandaloneConsumer) retrieveObjectForSampleConfig();
+      ((DataLakeConsumer) standaloneConsumer.getConsumer()).setPoller(poller);
       result.add(standaloneConsumer);
     }
     return result;
   }
+
 }
