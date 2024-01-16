@@ -44,5 +44,13 @@
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/com\.azure/azure\-identity@.*$</packageUrl>
     <vulnerabilityName>CVE-2023-36415</vulnerabilityName>
-  </suppress>  
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: azure-core-1.45.1.jar, azure-core-http-netty-1.13.11.jar, azure-identity-1.11.1.jar, azure-json-1.1.0.jar
+    This is a false positive. The CVE is for azure-cli
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.azure/azure\-(core|identity|json).*@.*$</packageUrl>
+    <cve>CVE-2023-36052</cve>
+  </suppress>
 </suppressions>
