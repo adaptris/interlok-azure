@@ -14,7 +14,7 @@ dependencies {
         because "CVE-2021-27568: Affect json-smart up to (excluding) 2.3.1"
       }
     }
-  api ("com.microsoft.graph:microsoft-graph:5.80.0") {
+  api ("com.microsoft.graph:microsoft-graph:6.7.0") {
     exclude group: "com.google.code.gson", module: "gson"
     exclude group: "com.squareup.okhttp3", module: "okhttp"
   }
