@@ -20,7 +20,7 @@ dependencies {
   api (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
   api ("com.fasterxml.jackson.core:jackson-databind")
   api ("com.fasterxml.jackson.core:jackson-core")
-  api ("commons-codec:commons-codec:1.17.0")
+  api ("commons-codec:commons-codec:1.17.1")
 
   api ("com.adaptris:interlok-apache-http:$interlokCoreVersion")
 }
