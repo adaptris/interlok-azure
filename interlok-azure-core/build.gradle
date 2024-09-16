@@ -24,7 +24,7 @@ dependencies {
     exclude group: "com.squareup.okio", module: "okio"
   }
   implementation ("com.squareup.okio:okio:3.9.0")
-  api ("com.azure:azure-identity:1.13.2") {
+  api ("com.azure:azure-identity:1.13.3") {
     // Exclude KeePassJava2 dependencies, because we don't care
     // If people want it, then can include it themselves.
     exclude group: "org.linguafranca.pwdb", module: "KeePassJava2"
