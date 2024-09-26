@@ -2,10 +2,10 @@ import org.apache.tools.ant.filters.ReplaceTokens
 import org.apache.tools.ant.taskdefs.condition.Os
 
 plugins {
-  id "com.github.spotbugs" version "6.0.14" apply false
+  id "com.github.spotbugs" version "6.0.21" apply false
   id "org.sonarqube" version "4.4.1.3373"
-  id "org.owasp.dependencycheck" version "9.0.10" apply false
-  id "io.freefair.lombok" version "8.6" apply false
+  id "org.owasp.dependencycheck" version "10.0.3" apply false
+  id "io.freefair.lombok" version "8.10" apply false
 }
 
 ext {
@@ -22,7 +22,7 @@ ext {
   offlineJavadocPackageDir = new File(project.buildDir, "offline-javadoc-packages")
 
   organizationName = "Adaptris Ltd"
-  slf4jVersion = '2.0.13'
+  slf4jVersion = '2.0.16'
   mockitoVersion = '5.2.0'
 }
 
@@ -174,7 +174,7 @@ subprojects {
 
     annotationProcessor ("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
 
-    testImplementation ("org.junit.jupiter:junit-jupiter-engine:5.10.2")
+    testImplementation ("org.junit.jupiter:junit-jupiter-engine:5.11.0")
     testImplementation ("org.slf4j:slf4j-simple:$slf4jVersion")
     testImplementation ("com.adaptris:interlok-stubs:$interlokCoreVersion") { changing= true }
     testImplementation ("org.slf4j:slf4j-log4j12:$slf4jVersion")
@@ -323,6 +323,11 @@ subprojects {
     formats = [ "HTML", "JUNIT" ]
     junitFailOnCVSS = 7.0
     failBuildOnCVSS = 7.0
+    nvd {
+      apiKey = System.getenv("NVD_API_KEY")
+      delay=project.findProperty("dependencyCheckNvdDelay")
+      datafeedUrl=project.findProperty("dependencyCheckNvdDatafeedUrl")
+    }
     analyzers {
       assemblyEnabled=false
       knownExploitedURL=project.findProperty('dependencyCheckKnownExploitedURL')
