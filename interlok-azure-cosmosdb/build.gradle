@@ -4,7 +4,7 @@ ext {
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
 
   jacksonVersion = "2.18.2"
-  jsonOrgVersion = "20240303"
+  jsonOrgVersion = "20241224"
 }
 
 dependencies {
