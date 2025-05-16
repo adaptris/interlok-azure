@@ -3,7 +3,7 @@ ext {
   componentDesc = "Common components for interacting with Azure and Office 365"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
   jacksonVersion = '2.18.3'
-  nettyVersion = '4.1.119.Final'
+  nettyVersion = '4.2.1.Final'
 }
 
 dependencies {
@@ -18,12 +18,12 @@ dependencies {
     exclude group: "com.google.code.gson", module: "gson"
     exclude group: "com.squareup.okhttp3", module: "okhttp"
   }
-  implementation ("com.google.code.gson:gson:2.12.1")
+  implementation ("com.google.code.gson:gson:2.13.1")
   implementation ("com.squareup.okhttp3:okhttp:4.12.0") {
     exclude group: "com.google.code.gson", module: "gson"
     exclude group: "com.squareup.okio", module: "okio"
   }
-  implementation ("com.squareup.okio:okio:3.9.1")
+  implementation ("com.squareup.okio:okio:3.11.0")
   api ("com.azure:azure-identity:1.15.4") {
     // Exclude KeePassJava2 dependencies, because we don't care
     // If people want it, then can include it themselves.
@@ -47,7 +47,7 @@ dependencies {
 
   api ("org.codehaus.woodstox:stax2-api:4.2.2")
   api ("org.codehaus.staxmate:stax2:2.1")
-  api ("com.google.guava:guava:33.4.6-jre")
+  api ("com.google.guava:guava:33.4.8-jre")
   // azure-core via azure-identity has an explicit dependency on these jars,
   // so we need to pin the right version
   // Dependency to platform/BOM
