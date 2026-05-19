@@ -53,4 +53,56 @@
     <packageUrl regex="true">^pkg:maven/com\.azure/azure\-(core|identity|json).*@.*$</packageUrl>
     <cve>CVE-2023-36052</cve>
   </suppress>
+  <suppress>
+    <notes><![CDATA[
+      com.azure:azure-core, azure-core-http-netty, azure-identity, and azure-json are already at the latest stable releases used in this repo.
+      There is no newer in-line Maven Central upgrade available for CVE-2026-33117 at the moment.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.azure/azure\-(core|core-http-netty|identity|json)@(1\.58\.0|1\.16\.4|1\.18\.3|1\.5\.1)$</packageUrl>
+    <cve>CVE-2026-33117</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      com.azure:azure-identity:1.18.3 is already the latest stable release published to Maven Central.
+      There is no newer stable in-line upgrade available for CVE-2024-35255 at the moment.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.azure/azure\-identity@1\.18\.3$</packageUrl>
+    <cve>CVE-2024-35255</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      com.microsoft.azure:msal4j:1.24.1 is the latest stable release published to Maven Central.
+      There is no newer stable in-line upgrade available for this MSAL finding at the moment.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.microsoft\.azure/msal4j@1\.24\.1$</packageUrl>
+    <cve>CVE-2024-35255</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      The remaining Kotlin stdlib jdk7/jdk8 findings are transitive and persist even with current Azure dependency versions.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin\-stdlib\-jdk(7|8)@1\.8\.21$</packageUrl>
+    <cve>CVE-2020-29582</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      file name: spring-boot-loader-2.7.18.jar
+      We are pinned to Spring Boot 2.7.x on Java 17. There is no newer 2.7.x release in Maven Central,
+      so these CVEs cannot be remediated by an in-line version bump at the moment.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.springframework\.boot/spring-boot-loader@2\.7\.18$</packageUrl>
+    <cve>CVE-2026-40972</cve>
+    <cve>CVE-2026-40973</cve>
+    <cve>CVE-2026-40974</cve>
+    <cve>CVE-2026-40975</cve>
+    <cve>CVE-2026-40977</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      Jetty 10.0.26 is the newest Jetty 10 release available in Maven Central. Remediation for this CVE
+      requires moving off the Jetty 10 line, which is outside the current Java 17 / Jetty 10 constraints.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.eclipse\.jetty(\.http2|\.websocket)?/.+@10\.0\.26$</packageUrl>
+    <cve>CVE-2026-2332</cve>
+  </suppress>
 </suppressions>

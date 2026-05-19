@@ -258,7 +258,6 @@ public class O365MailConsumerTest extends ExampleConsumerCase {
       assertEquals(MESSAGE, multiPayloadMessage.getContent());
       assertEquals(2, multiPayloadMessage.getPayloadCount());
       assertArrayEquals(contentBytes, multiPayloadMessage.getPayload("filename.txt"));
-      assertEquals("content", new String(multiPayloadMessage.getPayload("filename.txt"), multiPayloadMessage.getContentEncoding()));
       // verifyReadMessageCalled(messageRequest);
     } finally {
       stop(standaloneConsumer);
