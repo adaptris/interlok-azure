@@ -105,4 +105,41 @@
     <packageUrl regex="true">^pkg:maven/org\.eclipse\.jetty(\.http2|\.websocket)?/.+@10\.0\.26$</packageUrl>
     <cve>CVE-2026-2332</cve>
   </suppress>
+  <suppress>
+    <notes><![CDATA[
+      Azure SDK dependencies are pinned in this release line. Suppress CVE-2026-33117 for
+      azure-core/azure-core-http-netty/azure-identity until a coordinated SDK upgrade is made.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.azure/azure-(core|core-http-netty|identity)@(1\.58\.1|1\.16\.5|1\.18\.4)$</packageUrl>
+    <cve>CVE-2026-33117</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      CVE-2024-35255 currently affects the pinned Azure auth chain versions in this repo.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.azure/azure-identity@1\.18\.4$</packageUrl>
+    <cve>CVE-2024-35255</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      CVE-2024-35255 currently affects the pinned MSAL version used by interlok-azure-core.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.microsoft\.azure/msal4j@1\.25\.1$</packageUrl>
+    <cve>CVE-2024-35255</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      Kotlin stdlib findings are transitive from Azure and Microsoft Graph dependency chains.
+      These versions are currently pinned by upstream dependencies in this release line.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin-stdlib@2\.1\.20$</packageUrl>
+    <cve>CVE-2026-53914</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      Kotlin stdlib jdk7/jdk8 artifacts are transitively resolved in this dependency graph.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin-stdlib-jdk(7|8)@1\.8\.21$</packageUrl>
+    <cve>CVE-2026-53914</cve>
+  </suppress>
 </suppressions>
