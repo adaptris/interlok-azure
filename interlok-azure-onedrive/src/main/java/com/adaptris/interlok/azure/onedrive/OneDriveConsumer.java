@@ -19,7 +19,7 @@ package com.adaptris.interlok.azure.onedrive;
 import java.io.InputStream;
 import java.util.List;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;

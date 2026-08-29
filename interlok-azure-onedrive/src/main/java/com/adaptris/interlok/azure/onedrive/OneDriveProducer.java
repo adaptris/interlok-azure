@@ -2,7 +2,7 @@ package com.adaptris.interlok.azure.onedrive;
 
 import java.util.Optional;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.BooleanUtils;
