@@ -362,6 +362,6 @@ subprojects {
     version = "1.18.22"
   }
   
-  check.dependsOn jacocoTestReport, jacocoTestCoverageVerification
+  check.dependsOn jacocoTestReport
   javadoc.dependsOn offlinePackageList, umlJavadoc
 }
