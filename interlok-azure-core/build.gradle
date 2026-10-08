@@ -13,6 +13,15 @@ dependencies {
       api("net.minidev:json-smart:2.5.2") {
         because "CVE-2021-27568: Affect json-smart up to (excluding) 2.3.1"
       }
+      api("io.projectreactor:reactor-core:3.8.7") {
+        because "Fix CVE-2026-47857 and CVE-2026-47863"
+      }
+      api("io.projectreactor.netty:reactor-netty-core:1.3.7") {
+        because "Fix CVE-2026-47843 and CVE-2026-47874"
+      }
+      api("io.projectreactor.netty:reactor-netty-http:1.3.7") {
+        because "Fix CVE-2026-47845, CVE-2026-47848 and CVE-2026-47874"
+      }
     }
   api ("com.microsoft.graph:microsoft-graph:5.80.0") {
     exclude group: "com.google.code.gson", module: "gson"
@@ -24,7 +33,7 @@ dependencies {
     exclude group: "com.squareup.okio", module: "okio"
   }
   implementation ("com.squareup.okio:okio:3.11.0")
-  api ("com.azure:azure-identity:1.18.6") {
+  api ("com.azure:azure-identity:1.18.7") {
     // Exclude KeePassJava2 dependencies, because we don't care
     // If people want it, then can include it themselves.
     exclude group: "org.linguafranca.pwdb", module: "KeePassJava2"
@@ -47,7 +56,7 @@ dependencies {
 
   api ("org.codehaus.woodstox:stax2-api:4.2.2")
   api ("org.codehaus.staxmate:stax2:2.1")
-  api ("com.google.guava:guava:33.7.1-jre")
+  api ("com.google.guava:guava:33.7.2-jre")
   // azure-core via azure-identity has an explicit dependency on these jars,
   // so we need to pin the right version
   // Dependency to platform/BOM
