@@ -107,24 +107,31 @@
   </suppress>
   <suppress>
     <notes><![CDATA[
-      Azure SDK dependencies are pinned in this release line. Suppress CVE-2026-33117 for
-      azure-core/azure-core-http-netty/azure-identity until a coordinated SDK upgrade is made.
+      False positive: CVE-2026-33117 affects local cryptographic verification in
+      azure-security-keyvault-keys before 4.10.6, not azure-core, azure-core-http-netty
+      or azure-identity. The affected Key Vault library is not in this dependency graph.
+      The generic azure_sdk_for_java CPE still matches these artifacts after upgrading
+      to the latest stable Azure Identity release (1.18.7).
     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/com\.azure/azure-(core|core-http-netty|identity)@(1\.58\.1|1\.16\.5|1\.18\.4)$</packageUrl>
+    <packageUrl regex="true">^pkg:maven/com\.azure/azure-(core|core-http-netty|identity)@(1\.58\.1|1\.16\.5|1\.18\.4|1\.60\.0|1\.16\.8|1\.18\.7)$</packageUrl>
     <cve>CVE-2026-33117</cve>
   </suppress>
   <suppress>
     <notes><![CDATA[
-      CVE-2024-35255 currently affects the pinned Azure auth chain versions in this repo.
+      False positive: CVE-2024-35255 is fixed in Azure Identity for Java 1.12.2.
+      Both 1.18.4 and the latest stable release 1.18.7 include the fix.
+      Dependency-Check matches CPE version ranges for other language SDKs.
     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/com\.azure/azure-identity@1\.18\.4$</packageUrl>
+    <packageUrl regex="true">^pkg:maven/com\.azure/azure-identity@(1\.18\.4|1\.18\.7)$</packageUrl>
     <cve>CVE-2024-35255</cve>
   </suppress>
   <suppress>
     <notes><![CDATA[
-      CVE-2024-35255 currently affects the pinned MSAL version used by interlok-azure-core.
+      False positive: CVE-2024-35255 is fixed in MSAL for Java 1.15.1.
+      Both 1.25.1 and the latest stable release 1.26.0 include the fix.
+      Dependency-Check matches CPE version ranges for other language SDKs.
     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/com\.microsoft\.azure/msal4j@1\.25\.1$</packageUrl>
+    <packageUrl regex="true">^pkg:maven/com\.microsoft\.azure/msal4j@(1\.25\.1|1\.26\.0)$</packageUrl>
     <cve>CVE-2024-35255</cve>
   </suppress>
   <suppress>
