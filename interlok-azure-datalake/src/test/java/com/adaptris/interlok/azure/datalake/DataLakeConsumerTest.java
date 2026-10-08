@@ -1,21 +1,28 @@
 package com.adaptris.interlok.azure.datalake;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.FileInputStream;
 import java.io.InterruptedIOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
@@ -31,6 +38,7 @@ import com.adaptris.interlok.junit.scaffolding.ExampleConsumerCase;
 import com.adaptris.util.TimeInterval;
 import com.azure.core.http.rest.PagedIterable;
 import com.azure.storage.file.datalake.DataLakeDirectoryClient;
+import com.azure.storage.file.datalake.DataLakeFileClient;
 import com.azure.storage.file.datalake.DataLakeFileSystemClient;
 import com.azure.storage.file.datalake.DataLakeServiceClient;
 import com.azure.storage.file.datalake.models.ListPathsOptions;
@@ -143,6 +151,49 @@ public class DataLakeConsumerTest extends ExampleConsumerCase {
   @Override
   protected Object retrieveObjectForSampleConfig() {
     return new StandaloneConsumer(connection, consumer);
+  }
+
+  @Test
+  public void testConsumesFileContentAndMetadata() throws Exception {
+    DataLakeConnection mockConnection = mock(DataLakeConnection.class);
+    consumer.registerConnection(mockConnection);
+    when(mockConnection.retrieveConnection(any())).thenReturn(mockConnection);
+    DataLakeServiceClient client = mock(DataLakeServiceClient.class);
+    when(mockConnection.getClientConnection()).thenReturn(client);
+    DataLakeFileSystemClient fileSystemClient = mock(DataLakeFileSystemClient.class);
+    when(client.getFileSystemClient(consumer.getFileSystem())).thenReturn(fileSystemClient);
+    DataLakeDirectoryClient directoryClient = mock(DataLakeDirectoryClient.class);
+    when(fileSystemClient.getDirectoryClient(consumer.getPath())).thenReturn(directoryClient);
+    DataLakeFileClient fileClient = mock(DataLakeFileClient.class);
+    when(directoryClient.getFileClient("file.txt")).thenReturn(fileClient);
+    byte[] content = "file content".getBytes(StandardCharsets.UTF_8);
+    doAnswer(invocation -> {
+      OutputStream output = invocation.getArgument(0);
+      output.write(content);
+      return null;
+    }).when(fileClient).read(any(OutputStream.class));
+
+    PathItem file = mock(PathItem.class);
+    when(file.getName()).thenReturn(consumer.getPath() + "/file.txt");
+    when(file.isDirectory()).thenReturn(false);
+    when(file.getContentLength()).thenReturn((long) content.length);
+    PagedIterable<PathItem> paths = mock(PagedIterable.class);
+    when(paths.iterator()).thenReturn(Collections.singletonList(file).iterator());
+    when(fileSystemClient.listPaths(any(ListPathsOptions.class), isNull())).thenReturn(paths);
+    MockMessageListener listener = new MockMessageListener(10);
+    consumer.registerAdaptrisMessageListener(listener);
+
+    assertEquals(1, consumer.processMessages());
+
+    assertEquals(1, listener.getMessages().size());
+    AdaptrisMessage message = listener.getMessages().get(0);
+    assertEquals("file content", message.getContent());
+    assertEquals("file.txt", message.getMetadataValue("filename"));
+    assertEquals(String.valueOf(content.length), message.getMetadataValue("size"));
+    ArgumentCaptor<ListPathsOptions> options = ArgumentCaptor.forClass(ListPathsOptions.class);
+    verify(fileSystemClient).listPaths(options.capture(), isNull());
+    assertEquals(consumer.getPath(), options.getValue().getPath());
+    verify(fileClient).read(any(OutputStream.class));
   }
 
   @Override

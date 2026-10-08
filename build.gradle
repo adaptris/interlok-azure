@@ -233,6 +233,7 @@ subprojects {
   }
 
   jacocoTestReport {
+    dependsOn test
     reports {
       xml.required= true
       html.required= true
@@ -361,6 +362,6 @@ subprojects {
     version = "1.18.22"
   }
   
-  check.dependsOn jacocoTestReport
+  check.dependsOn jacocoTestReport, jacocoTestCoverageVerification
   javadoc.dependsOn offlinePackageList, umlJavadoc
 }
