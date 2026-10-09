@@ -23,7 +23,7 @@ dependencies {
         because "Fix CVE-2026-47845, CVE-2026-47848 and CVE-2026-47874"
       }
     }
-  api ("com.microsoft.graph:microsoft-graph:5.80.0") {
+  api ("com.microsoft.graph:microsoft-graph:6.70.0") {
     exclude group: "com.google.code.gson", module: "gson"
     exclude group: "com.squareup.okhttp3", module: "okhttp"
   }
