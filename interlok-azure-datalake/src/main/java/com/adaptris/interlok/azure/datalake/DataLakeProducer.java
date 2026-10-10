@@ -2,7 +2,7 @@ package com.adaptris.interlok.azure.datalake;
 
 import java.io.InputStream;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 import org.apache.commons.lang3.BooleanUtils;
 
