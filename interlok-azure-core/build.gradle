@@ -16,10 +16,10 @@ dependencies {
       api("io.projectreactor:reactor-core:3.8.7") {
         because "Fix CVE-2026-47857 and CVE-2026-47863"
       }
-      api("io.projectreactor.netty:reactor-netty-core:1.3.7") {
+      api("io.projectreactor.netty:reactor-netty-core:1.3.8") {
         because "Fix CVE-2026-47843 and CVE-2026-47874"
       }
-      api("io.projectreactor.netty:reactor-netty-http:1.3.7") {
+      api("io.projectreactor.netty:reactor-netty-http:1.3.8") {
         because "Fix CVE-2026-47845, CVE-2026-47848 and CVE-2026-47874"
       }
     }
