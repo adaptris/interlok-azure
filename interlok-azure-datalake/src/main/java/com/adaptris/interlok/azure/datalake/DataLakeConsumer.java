@@ -18,7 +18,7 @@ package com.adaptris.interlok.azure.datalake;
 
 import java.io.OutputStream;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 import org.apache.commons.io.FilenameUtils;
 

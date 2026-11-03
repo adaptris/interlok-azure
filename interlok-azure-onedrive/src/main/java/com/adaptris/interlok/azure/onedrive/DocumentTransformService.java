@@ -2,7 +2,7 @@ package com.adaptris.interlok.azure.onedrive;
 
 import java.util.LinkedList;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;

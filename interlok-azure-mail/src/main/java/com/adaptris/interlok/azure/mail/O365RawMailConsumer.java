@@ -22,9 +22,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Properties;
 
-import javax.mail.Session;
-import javax.mail.internet.MimeMessage;
-import javax.validation.Valid;
+import jakarta.mail.Session;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.validation.Valid;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
