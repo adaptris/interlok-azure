@@ -2,72 +2,70 @@ ext {
   componentName = 'Interlok Azure/Common'
   componentDesc = "Common components for interacting with Azure and Office 365"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  jacksonVersion = '2.22.4'
-  nettyVersion = '4.2.19.Final'
 }
 
 dependencies {
 
-  api ("com.microsoft.azure:msal4j:1.26.0")
+  api ("com.microsoft.azure:msal4j")
     constraints {
-      api("net.minidev:json-smart:2.5.2") {
+      api("net.minidev:json-smart") {
         because "CVE-2021-27568: Affect json-smart up to (excluding) 2.3.1"
       }
-      api("io.projectreactor:reactor-core:3.8.7") {
+      api("io.projectreactor:reactor-core") {
         because "Fix CVE-2026-47857 and CVE-2026-47863"
       }
-      api("io.projectreactor.netty:reactor-netty-core:1.3.7") {
+      api("io.projectreactor.netty:reactor-netty-core") {
         because "Fix CVE-2026-47843 and CVE-2026-47874"
       }
-      api("io.projectreactor.netty:reactor-netty-http:1.3.7") {
+      api("io.projectreactor.netty:reactor-netty-http") {
         because "Fix CVE-2026-47845, CVE-2026-47848 and CVE-2026-47874"
       }
     }
-  api ("com.microsoft.graph:microsoft-graph:5.80.0") {
+  api ("com.microsoft.graph:microsoft-graph") {
     exclude group: "com.google.code.gson", module: "gson"
     exclude group: "com.squareup.okhttp3", module: "okhttp"
   }
-  implementation ("com.google.code.gson:gson:2.15.0")
-  implementation ("com.squareup.okhttp3:okhttp:4.12.0") {
+  implementation ("com.google.code.gson:gson")
+  implementation ("com.squareup.okhttp3:okhttp") {
     exclude group: "com.google.code.gson", module: "gson"
     exclude group: "com.squareup.okio", module: "okio"
   }
-  implementation ("com.squareup.okio:okio:3.11.0")
-  api ("com.azure:azure-identity:1.19.0") {
+  implementation ("com.squareup.okio:okio")
+  api ("com.azure:azure-identity") {
     // Exclude KeePassJava2 dependencies, because we don't care
     // If people want it, then can include it themselves.
     exclude group: "org.linguafranca.pwdb", module: "KeePassJava2"
     exclude group: "org.simpleframework", module: "simple-xml"
     exclude group: "io.netty"
   }
-  api ("com.azure:azure-storage-file-datalake:12.22.0") {
+  api ("com.azure:azure-storage-file-datalake") {
     exclude group: "io.netty"
   }
 
-  implementation ("io.netty:netty-handler:$nettyVersion")
-  implementation ("io.netty:netty-handler-proxy:$nettyVersion")
-  implementation ("io.netty:netty-transport-native-epoll:$nettyVersion")
-  implementation ("io.netty:netty-transport-native-unix-common:$nettyVersion")
-  implementation ("io.netty:netty-transport-native-kqueue:$nettyVersion")
-  implementation ("io.netty:netty-codec:$nettyVersion")
-  implementation ("io.netty:netty-codec-http2:$nettyVersion")
-  implementation ("io.netty:netty-codec-http:$nettyVersion")
-  implementation ("io.netty:netty-resolver-dns:$nettyVersion")
+  implementation ("io.netty:netty-handler")
+  implementation ("io.netty:netty-handler-proxy")
+  implementation ("io.netty:netty-transport-native-epoll")
+  implementation ("io.netty:netty-transport-native-unix-common")
+  implementation ("io.netty:netty-transport-native-kqueue")
+  implementation ("io.netty:netty-codec")
+  implementation ("io.netty:netty-codec-http2")
+  implementation ("io.netty:netty-codec-http")
+  implementation ("io.netty:netty-resolver-dns")
 
-  api ("org.codehaus.woodstox:stax2-api:4.2.2")
-  api ("org.codehaus.staxmate:stax2:2.1")
-  api ("com.google.guava:guava:33.7.2-jre")
+  api ("org.codehaus.woodstox:stax2-api")
+  api ("org.codehaus.staxmate:stax2")
+  api ("com.google.guava:guava")
   // azure-core via azure-identity has an explicit dependency on these jars,
   // so we need to pin the right version
   // Dependency to platform/BOM
-  api (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
+  api (platform("com.fasterxml.jackson:jackson-bom"))
   api ("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
   api ("com.fasterxml.jackson.dataformat:jackson-dataformat-xml")
   // should be pulled in by the jackson-datatype/dataformat deps.
   api ("com.fasterxml.jackson.core:jackson-databind")
   api ("com.fasterxml.jackson.core:jackson-core")
 
-  api ("commons-codec:commons-codec:1.23.0")
+  api ("commons-codec:commons-codec")
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
