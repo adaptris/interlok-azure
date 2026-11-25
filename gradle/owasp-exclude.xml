@@ -122,18 +122,18 @@
       azure-security-keyvault-keys before 4.10.6, not azure-core, azure-core-http-netty
       or azure-identity. The affected Key Vault library is not in this dependency graph.
       The generic azure_sdk_for_java CPE still matches these artifacts after upgrading
-      to the latest stable Azure Identity release (1.18.7).
+      to the latest stable Azure SDK releases.
     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/com\.azure/(azure-core@1\.60\.0|azure-core-http-netty@1\.16\.8|azure-identity@1\.18\.7|azure-json@1\.5\.1)$</packageUrl>
+    <packageUrl regex="true">^pkg:maven/com\.azure/(azure-core@(?:1\.60\.0|1\.61\.0)|azure-core-http-netty@(?:1\.16\.8|1\.17\.0)|azure-identity@(?:1\.18\.7|1\.19\.0)|azure-json@(?:1\.5\.1))$</packageUrl>
     <cve>CVE-2026-33117</cve>
   </suppress>
   <suppress>
     <notes><![CDATA[
       False positive: CVE-2024-35255 is fixed in Azure Identity for Java 1.12.2.
-      Both 1.18.4 and the latest stable release 1.18.7 include the fix.
+      Releases 1.18.4, 1.18.7 and 1.19.0 include the fix.
       Dependency-Check matches CPE version ranges for other language SDKs.
     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/com\.azure/azure-identity@(1\.18\.4|1\.18\.7)$</packageUrl>
+    <packageUrl regex="true">^pkg:maven/com\.azure/azure-identity@(1\.18\.4|1\.18\.7|1\.19\.0)$</packageUrl>
     <cve>CVE-2024-35255</cve>
   </suppress>
   <suppress>
@@ -144,6 +144,18 @@
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/com\.microsoft\.azure/msal4j@(1\.25\.1|1\.26\.0)$</packageUrl>
     <cve>CVE-2024-35255</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      False positive: CVE-2026-53914 affects kotlin-gradle-plugin before 2.4.20-Beta1,
+      specifically unsafe deserialization of build-cache metadata, not Kotlin runtime libraries.
+      Advisory: https://github.com/advisories/GHSA-r937-wjx7-w2jp
+      kotlin-stdlib 2.2.0 and the compatibility artifacts 2.2.0 are runtime dependencies
+      of okhttp/okio; the affected build plugin is not in the scan graph.
+      These suppressions do not apply to kotlin-gradle-plugin or accept its code-execution risk.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/(kotlin-stdlib@2\.2\.0|kotlin-stdlib-jdk7@2\.2\.0|kotlin-stdlib-jdk8@2\.2\.0)$</packageUrl>
+    <cve>CVE-2026-53914</cve>
   </suppress>
   <suppress>
     <notes><![CDATA[
